@@ -42,7 +42,7 @@ const About: React.FC = () => {
             </div>
             
             <div className="relative">
-              <div className="aspect-[3/4] relative rounded-lg overflow-hidden">
+              <div className="aspect-[1/1] relative rounded-lg overflow-hidden">
                 <img
                   src="/lovable-uploads/d7a59393-6000-4bc0-80f3-f352306e9523.png"
                   alt="AI Expert Profile"
