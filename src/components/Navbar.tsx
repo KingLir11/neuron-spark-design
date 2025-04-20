@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,11 +16,29 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleNavClick = (href: string) => {
+    setMobileMenuOpen(false);
+    
+    if (location.pathname !== '/' && !href.startsWith('#')) {
+      return; // Let the Link component handle navigation
+    }
+
+    if (location.pathname !== '/' && href.startsWith('#')) {
+      window.location.href = '/' + href; // Navigate to home page with hash
+      return;
+    }
+
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const navLinks = [
     { title: 'Home', href: '#home' },
     { title: 'About', href: '#about' },
     { title: 'Services', href: '#services' },
-    { title: 'Projects', href: '#projects' },
+    { title: 'Projects', href: '/projects' },
     { title: 'Contact', href: '#contact' },
   ];
 
@@ -30,20 +49,33 @@ const Navbar: React.FC = () => {
     )}>
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <a href="#home" className="text-2xl font-display font-bold text-primary glow">
+          <Link 
+            to="/" 
+            className="text-2xl font-display font-bold text-primary glow"
+          >
             AI<span className="text-white">Expert</span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-gray-300 hover:text-primary transition-colors"
-              >
-                {link.title}
-              </a>
+              link.href.startsWith('#') ? (
+                <button
+                  key={link.href}
+                  onClick={() => handleNavClick(link.href)}
+                  className="text-sm font-medium text-gray-300 hover:text-primary transition-colors"
+                >
+                  {link.title}
+                </button>
+              ) : (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className="text-sm font-medium text-gray-300 hover:text-primary transition-colors"
+                >
+                  {link.title}
+                </Link>
+              )
             ))}
           </nav>
 
@@ -84,14 +116,24 @@ const Navbar: React.FC = () => {
           <nav className="md:hidden py-4 animate-fade-in">
             <div className="flex flex-col space-y-4">
               {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-gray-300 hover:text-primary transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.title}
-                </a>
+                link.href.startsWith('#') ? (
+                  <button
+                    key={link.href}
+                    onClick={() => handleNavClick(link.href)}
+                    className="text-gray-300 hover:text-primary transition-colors"
+                  >
+                    {link.title}
+                  </button>
+                ) : (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="text-gray-300 hover:text-primary transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.title}
+                  </Link>
+                )
               ))}
             </div>
           </nav>
