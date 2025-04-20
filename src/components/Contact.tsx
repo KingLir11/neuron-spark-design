@@ -56,22 +56,16 @@ const Contact: React.FC = () => {
                   <Mail className="w-5 h-5 text-primary mt-1 mr-4" />
                   <div>
                     <h4 className="text-white font-medium mb-2">Email</h4>
-                    <p className="text-gray-300">contact@aiexpert.com</p>
+                    <p className="text-gray-300">liransap11@gmail.com</p>
                   </div>
                 </div>
                 
                 <div className="bg-dark-100 p-5 rounded-lg flex items-start">
                   <MessageSquare className="w-5 h-5 text-primary mt-1 mr-4" />
                   <div>
-                    <h4 className="text-white font-medium mb-2">Telegram</h4>
-                    <p className="text-gray-300">@ai_expert</p>
+                    <h4 className="text-white font-medium mb-2">Phone Number</h4>
+                    <p className="text-gray-300">+972 54-3551093</p>
                   </div>
-                </div>
-                
-                <div className="bg-dark-100 p-5 rounded-lg">
-                  <h4 className="text-white font-medium mb-3">Availability</h4>
-                  <p className="text-gray-300 mb-2">Monday - Friday</p>
-                  <p className="text-gray-300 font-mono">09:00 - 18:00 UTC</p>
                 </div>
               </div>
             </div>
