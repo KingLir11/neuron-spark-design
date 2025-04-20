@@ -18,7 +18,7 @@ const Services: React.FC = () => {
     },
     {
       title: "AI Image Generation",
-      description: "Create stunning visuals with Midjourney, DALL·E, and custom Photoshop workflows that push creative boundaries.",
+      description: "Create stunning visuals with Midjourney, ChatGPT and other leading image generators that push creative boundaries.",
       icon: Image,
       color: "from-green-500 to-emerald-400"
     },
