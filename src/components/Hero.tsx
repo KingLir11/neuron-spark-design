@@ -50,7 +50,7 @@ const Hero: React.FC = () => {
               <div className="w-full h-full bg-dark-200 rounded-lg flex items-center justify-center">
                 <div className="text-center space-y-3">
                   <div className="text-5xl text-glow-blue">
-                    <span className="inline-block animate-pulse">></span>
+                    <span className="inline-block animate-pulse">{`>`}</span>
                   </div>
                   <div className="font-mono text-gray-400 text-sm">
                     AI Expert at work.
