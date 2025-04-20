@@ -1,13 +1,10 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Mail, MessageSquare } from 'lucide-react';
-
 const Contact: React.FC = () => {
-  return (
-    <section id="contact" className="py-20">
+  return <section id="contact" className="py-20">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white text-center">
@@ -23,24 +20,13 @@ const Contact: React.FC = () => {
               
               <form className="space-y-4">
                 <div>
-                  <Input 
-                    type="text" 
-                    placeholder="Your Name" 
-                    className="bg-dark-100 border-gray-700 text-white"
-                  />
+                  <Input type="text" placeholder="Your Name" className="bg-dark-100 border-gray-700 text-white" />
                 </div>
                 <div>
-                  <Input 
-                    type="email" 
-                    placeholder="Your Email" 
-                    className="bg-dark-100 border-gray-700 text-white"
-                  />
+                  <Input type="email" placeholder="Your Email" className="bg-dark-100 border-gray-700 text-white" />
                 </div>
                 <div>
-                  <Textarea 
-                    placeholder="Your Message" 
-                    className="bg-dark-100 border-gray-700 text-white min-h-[120px]"
-                  />
+                  <Textarea placeholder="Your Message" className="bg-dark-100 border-gray-700 text-white min-h-[120px]" />
                 </div>
                 <Button className="w-full bg-primary hover:bg-primary/90 text-black">
                   Send Message
@@ -61,7 +47,7 @@ const Contact: React.FC = () => {
                 </div>
                 
                 <div className="bg-dark-100 p-5 rounded-lg flex items-start">
-                  <MessageSquare className="w-5 h-5 text-primary mt-1 mr-4" />
+                  <MessageSquare className="w-5 h-5 phone-outgoing mt-1 mr-4" />
                   <div>
                     <h4 className="text-white font-medium mb-2">Phone Number</h4>
                     <p className="text-gray-300">+972 54-3551093</p>
@@ -72,8 +58,6 @@ const Contact: React.FC = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Contact;
