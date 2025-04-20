@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const About: React.FC = () => {
@@ -43,20 +42,12 @@ const About: React.FC = () => {
             </div>
             
             <div className="relative">
-              <div className="aspect-[4/5] relative rounded-lg overflow-hidden bg-gradient-to-br from-glow-purple/30 via-dark-200 to-glow-blue/30 p-0.5">
-                <div className="absolute inset-0 bg-dark-200 rounded-lg"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="font-mono text-xs text-gray-400 mb-2">// AI Expert Profile</div>
-                    <div className="text-white font-display text-2xl mb-3">Tech Specialist</div>
-                    <div className="w-16 h-1 bg-gradient-to-r from-primary to-glow-purple mx-auto mb-3"></div>
-                    <div className="font-mono text-sm text-gray-400">
-                      <div>System Thinking</div>
-                      <div>Creative Solutions</div>
-                      <div>Real-world Results</div>
-                    </div>
-                  </div>
-                </div>
+              <div className="aspect-[1/1] relative rounded-lg overflow-hidden">
+                <img
+                  src="/lovable-uploads/d7a59393-6000-4bc0-80f3-f352306e9523.png"
+                  alt="AI Expert Profile"
+                  className="w-full h-full object-cover rounded-lg"
+                />
               </div>
             </div>
           </div>
