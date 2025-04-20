@@ -13,7 +13,7 @@ const About: React.FC = () => {
             <div className="space-y-6">
               <p className="text-gray-300 leading-relaxed">
                 I'm an AI specialist focused on turning emerging technologies into practical, powerful solutions. 
-                My journey began with coding and design, evolving into AI as the field exploded with possibilities.
+                I entered the world of AI head-on, driven by curiosity and a hands-on approach to real-world problem solving.
               </p>
               
               <p className="text-gray-300 leading-relaxed">
