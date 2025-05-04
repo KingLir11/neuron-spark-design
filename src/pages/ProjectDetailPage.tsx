@@ -1,15 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Edit, Image, Video, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Image, Video, Plus, X, Upload, FileImage, FileVideo } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 // Define project type for TypeScript
 interface Project {
@@ -19,7 +20,7 @@ interface Project {
   tools: string[];
   category: string;
   longDescription?: string;
-  image?: string;
+  images?: string[];
   videoUrl?: string;
 }
 
@@ -29,13 +30,18 @@ const ProjectDetailPage: React.FC = () => {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editLongDescription, setEditLongDescription] = useState('');
-  const [editImage, setEditImage] = useState('');
+  const [editImages, setEditImages] = useState<string[]>([]);
   const [editVideoUrl, setEditVideoUrl] = useState('');
   const [editTools, setEditTools] = useState<string[]>([]);
   const [editCategory, setEditCategory] = useState('');
   const [newTool, setNewTool] = useState('');
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [localProjects, setLocalProjects] = useState<Project[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState('');
+  
+  // Refs for file inputs
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Default project data
   const defaultProjects: Project[] = [
@@ -46,7 +52,7 @@ const ProjectDetailPage: React.FC = () => {
       tools: ["Midjourney", "Make.com", "Photoshop API"],
       category: "Image Generation",
       longDescription: "This project implements a fully automated workflow that takes standard product photography and applies various artistic styles using neural networks. The system integrates with e-commerce platforms to automatically process new product uploads, apply selected style transfers, and deploy the stylized images to product listings.",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
+      images: ["https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"]
     },
     {
       id: 2,
@@ -55,7 +61,7 @@ const ProjectDetailPage: React.FC = () => {
       tools: ["GPT-4", "Runway", "DALL·E 3"],
       category: "Automation",
       longDescription: "This system takes a single blog post as input and automatically generates a suite of derivative content including short video clips, social media posts tailored for different platforms, and email newsletter content. It uses GPT-4 for text transformation and DALL·E for generating accompanying visuals.",
-      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+      images: ["https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"]
     },
     {
       id: 3,
@@ -73,7 +79,7 @@ const ProjectDetailPage: React.FC = () => {
       tools: ["GPT-4", "Pika", "ElevenLabs"],
       category: "Video Creation",
       longDescription: "This automated pipeline transforms text scripts into fully rendered explainer videos. It breaks down scripts into scenes, generates appropriate visuals, adds voice narration using ElevenLabs, and composes everything into a cohesive video using Pika.",
-      image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6"
+      images: ["https://images.unsplash.com/photo-1461749280684-dccba630e2f6"]
     },
     {
       id: 5,
@@ -82,7 +88,7 @@ const ProjectDetailPage: React.FC = () => {
       tools: ["DALL·E 3", "Photoshop", "Make.com"],
       category: "Image Generation",
       longDescription: "A brand identity generation system that creates complete visual brand packages. From a simple text description of the brand values and target audience, it outputs logos, color palettes, typography recommendations, and example marketing materials.",
-      image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"
+      images: ["https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"]
     },
     {
       id: 6,
@@ -91,7 +97,7 @@ const ProjectDetailPage: React.FC = () => {
       tools: ["GPT-4", "Midjourney", "Python"],
       category: "Automation",
       longDescription: "This tool takes raw data as input, uses Python and GPT-4 to analyze trends and extract insights, then automatically creates visual representations optimized for storytelling and presentation. Ideal for data analysts and business intelligence teams.",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475"
+      images: ["https://images.unsplash.com/photo-1518770660439-4636190af475"]
     }
   ];
 
@@ -115,11 +121,11 @@ const ProjectDetailPage: React.FC = () => {
         setEditTitle(foundProject.title);
         setEditDescription(foundProject.description);
         setEditLongDescription(foundProject.longDescription || '');
-        setEditImage(foundProject.image || '');
+        setEditImages(foundProject.images || []);
         setEditVideoUrl(foundProject.videoUrl || '');
         setEditTools([...foundProject.tools]);
         setEditCategory(foundProject.category || '');
-        setMediaType(foundProject.image ? 'image' : 'video');
+        setMediaType(foundProject.images && foundProject.images.length > 0 ? 'image' : 'video');
       }
     }
   }, [projectId, localProjects]);
@@ -131,16 +137,16 @@ const ProjectDetailPage: React.FC = () => {
         title: editTitle,
         description: editDescription,
         longDescription: editLongDescription,
-        category: editCategory
+        category: editCategory,
       };
       
       // Update with the correct media based on mediaType
       if (mediaType === 'image') {
-        updatedProject.image = editImage;
+        updatedProject.images = editImages;
         updatedProject.videoUrl = undefined;
       } else if (mediaType === 'video') {
         updatedProject.videoUrl = editVideoUrl;
-        updatedProject.image = undefined;
+        updatedProject.images = [];
       }
 
       // Update project in state and localStorage
@@ -187,6 +193,52 @@ const ProjectDetailPage: React.FC = () => {
     const updatedTools = [...editTools];
     updatedTools.splice(index, 1);
     setEditTools(updatedTools);
+  };
+
+  // Handle image URL addition
+  const handleAddImageUrl = () => {
+    if (newImageUrl.trim()) {
+      setEditImages([...editImages, newImageUrl.trim()]);
+      setNewImageUrl('');
+    }
+  };
+
+  // Handle image removal
+  const handleRemoveImage = (index: number) => {
+    const updatedImages = [...editImages];
+    updatedImages.splice(index, 1);
+    setEditImages(updatedImages);
+  };
+
+  // Handle image file upload
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target && event.target.result) {
+            setEditImages(prev => [...prev, event.target!.result as string]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  // Handle video file upload
+  const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0]; // Only take the first video
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target && event.target.result) {
+          setEditVideoUrl(event.target!.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   if (!project) {
@@ -236,7 +288,7 @@ const ProjectDetailPage: React.FC = () => {
                     <DialogTitle className="text-white">Edit Project Details</DialogTitle>
                   </DialogHeader>
                   
-                  <div className="space-y-4 mt-4">
+                  <div className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-2">
                     <div>
                       <label className="text-sm font-medium mb-1 block">Project Title</label>
                       <Input 
@@ -282,7 +334,7 @@ const ProjectDetailPage: React.FC = () => {
                           onClick={() => setMediaType('image')}
                         >
                           <Image className="mr-2 h-4 w-4" />
-                          Image
+                          Images
                         </Button>
                         <Button 
                           type="button" 
@@ -296,38 +348,116 @@ const ProjectDetailPage: React.FC = () => {
                     </div>
                     
                     {mediaType === 'image' && (
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Image URL</label>
-                        <Input 
-                          value={editImage}
-                          onChange={(e) => setEditImage(e.target.value)}
-                          placeholder="https://example.com/image.jpg"
-                          className="bg-dark-200 border-gray-700 text-white"
-                        />
-                        {editImage && (
-                          <div className="mt-2 rounded overflow-hidden h-32">
-                            <img 
-                              src={editImage} 
-                              alt="Preview" 
-                              className="h-full w-auto object-contain"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+Image+URL';
-                              }}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm font-medium">Current Images</label>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => imageFileInputRef.current?.click()}
+                            >
+                              <Upload className="mr-2 h-4 w-4" />
+                              Upload Image
+                            </Button>
+                            <input
+                              type="file"
+                              ref={imageFileInputRef}
+                              onChange={handleImageFileUpload}
+                              accept="image/*"
+                              style={{ display: 'none' }}
+                              multiple
                             />
                           </div>
-                        )}
+                        </div>
+                        
+                        {/* Image gallery */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {editImages.map((img, index) => (
+                            <div key={index} className="relative group rounded-md overflow-hidden">
+                              <img 
+                                src={img} 
+                                alt={`Project image ${index + 1}`} 
+                                className="w-full h-32 object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+Image';
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm" 
+                                  onClick={() => handleRemoveImage(index)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Add image URL option */}
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Add Image URL</label>
+                          <div className="flex gap-2">
+                            <Input 
+                              value={newImageUrl}
+                              onChange={(e) => setNewImageUrl(e.target.value)}
+                              placeholder="https://example.com/image.jpg"
+                              className="bg-dark-200 border-gray-700 text-white flex-grow"
+                            />
+                            <Button onClick={handleAddImageUrl}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     )}
                     
                     {mediaType === 'video' && (
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Video URL</label>
-                        <Input 
-                          value={editVideoUrl}
-                          onChange={(e) => setEditVideoUrl(e.target.value)}
-                          placeholder="https://example.com/video.mp4"
-                          className="bg-dark-200 border-gray-700 text-white"
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm font-medium">Video</label>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => videoFileInputRef.current?.click()}
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Video
+                          </Button>
+                        </div>
+                        
+                        <input
+                          type="file"
+                          ref={videoFileInputRef}
+                          onChange={handleVideoFileUpload}
+                          accept="video/*"
+                          style={{ display: 'none' }}
                         />
+                        
+                        {editVideoUrl && (
+                          <div className="bg-dark-200 p-4 rounded-md">
+                            <video 
+                              controls 
+                              className="w-full h-48 object-contain"
+                            >
+                              <source src={editVideoUrl} />
+                              Your browser does not support the video tag.
+                            </video>
+                          </div>
+                        )}
+                        
+                        {/* For external video URL */}
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Or Enter Video URL</label>
+                          <Input 
+                            value={editVideoUrl}
+                            onChange={(e) => setEditVideoUrl(e.target.value)}
+                            placeholder="https://example.com/video.mp4"
+                            className="bg-dark-200 border-gray-700 text-white"
+                          />
+                        </div>
                       </div>
                     )}
                     
@@ -350,13 +480,36 @@ const ProjectDetailPage: React.FC = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              {project.image && (
-                <div className="rounded-lg overflow-hidden mb-6 bg-dark-100">
-                  <img 
-                    src={project.image} 
-                    alt={project.title} 
-                    className="w-full object-cover h-[400px]"
-                  />
+              {/* Show carousel if multiple images exist */}
+              {project.images && project.images.length > 0 && (
+                <div className="mb-6">
+                  {project.images.length > 1 ? (
+                    <Carousel className="w-full">
+                      <CarouselContent>
+                        {project.images.map((img, index) => (
+                          <CarouselItem key={index}>
+                            <div className="rounded-lg overflow-hidden bg-dark-100">
+                              <img 
+                                src={img} 
+                                alt={`${project.title} - Image ${index + 1}`} 
+                                className="w-full object-cover h-[400px]"
+                              />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="left-2" />
+                      <CarouselNext className="right-2" />
+                    </Carousel>
+                  ) : (
+                    <div className="rounded-lg overflow-hidden bg-dark-100">
+                      <img 
+                        src={project.images[0]} 
+                        alt={project.title} 
+                        className="w-full object-cover h-[400px]"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
               

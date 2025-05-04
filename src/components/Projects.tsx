@@ -9,7 +9,8 @@ interface ProjectType {
   description: string;
   tools: string[];
   category: string;
-  image?: string;
+  images?: string[];
+  videoUrl?: string;
 }
 
 const Projects: React.FC = () => {
@@ -22,14 +23,16 @@ const Projects: React.FC = () => {
       title: "Neural Style Transfer Pipeline",
       description: "Automated workflow for applying AI-generated artistic styles to product photography.",
       tools: ["Midjourney", "Make.com", "Photoshop API"],
-      category: "Image Generation"
+      category: "Image Generation",
+      images: ["https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"]
     },
     {
       id: 2,
       title: "Content Amplification System",
       description: "AI-powered workflow that turns blog posts into video snippets, social posts, and email newsletters.",
       tools: ["GPT-4", "Runway", "DALL·E 3"],
-      category: "Automation"
+      category: "Automation",
+      images: ["https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"]
     },
     {
       id: 3,
@@ -43,21 +46,24 @@ const Projects: React.FC = () => {
       title: "Explainer Video Factory",
       description: "Script-to-video pipeline that creates engaging educational content with minimal human intervention.",
       tools: ["GPT-4", "Pika", "ElevenLabs"],
-      category: "Video Creation"
+      category: "Video Creation",
+      images: ["https://images.unsplash.com/photo-1461749280684-dccba630e2f6"]
     },
     {
       id: 5,
       title: "Visual Identity Creator",
       description: "System that generates cohesive brand assets including logos, color schemes, and marketing materials.",
       tools: ["DALL·E 3", "Photoshop", "Make.com"],
-      category: "Image Generation"
+      category: "Image Generation",
+      images: ["https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"]
     },
     {
       id: 6,
       title: "Data Insight Visualizer",
       description: "Automation that transforms complex data into clear, compelling visual stories.",
       tools: ["GPT-4", "Midjourney", "Python"],
-      category: "Automation"
+      category: "Automation",
+      images: ["https://images.unsplash.com/photo-1518770660439-4636190af475"]
     }
   ];
 
@@ -90,9 +96,9 @@ const Projects: React.FC = () => {
               className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
             >
               <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
-                {project.image ? (
+                {project.images && project.images.length > 0 ? (
                   <img 
-                    src={project.image} 
+                    src={project.images[0]} 
                     alt={project.title}
                     className="w-full h-full object-cover"
                   />
