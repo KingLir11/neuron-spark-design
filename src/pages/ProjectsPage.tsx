@@ -2,40 +2,55 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { Link } from 'react-router-dom';
+
+interface ProjectType {
+  id: number;
+  title: string;
+  description: string;
+  tools: string[];
+  category: string;
+}
 
 const ProjectsPage: React.FC = () => {
-  const projects = [
+  const projects: ProjectType[] = [
     {
+      id: 1,
       title: "Neural Style Transfer Pipeline",
       description: "Automated workflow for applying AI-generated artistic styles to product photography.",
       tools: ["Midjourney", "Make.com", "Photoshop API"],
       category: "Image Generation"
     },
     {
+      id: 2,
       title: "Content Amplification System",
       description: "AI-powered workflow that turns blog posts into video snippets, social posts, and email newsletters.",
       tools: ["GPT-4", "Runway", "DALL·E 3"],
       category: "Automation"
     },
     {
+      id: 3,
       title: "Concept Art Generator",
       description: "Custom prompt system for generating consistent character designs across multiple AI platforms.",
       tools: ["Prompt Engineering", "Midjourney", "Stable Diffusion"],
       category: "Prompt Engineering"
     },
     {
+      id: 4,
       title: "Explainer Video Factory",
       description: "Script-to-video pipeline that creates engaging educational content with minimal human intervention.",
       tools: ["GPT-4", "Pika", "ElevenLabs"],
       category: "Video Creation"
     },
     {
+      id: 5,
       title: "Visual Identity Creator",
       description: "System that generates cohesive brand assets including logos, color schemes, and marketing materials.",
       tools: ["DALL·E 3", "Photoshop", "Make.com"],
       category: "Image Generation"
     },
     {
+      id: 6,
       title: "Data Insight Visualizer",
       description: "Automation that transforms complex data into clear, compelling visual stories.",
       tools: ["GPT-4", "Midjourney", "Python"],
@@ -58,9 +73,10 @@ const ProjectsPage: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.map((project, index) => (
-              <div 
-                key={index} 
-                className="bg-dark-100 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
+              <Link 
+                to={`/project/${project.id}`} 
+                key={index}
+                className="block bg-dark-100 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
               >
                 <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -87,7 +103,7 @@ const ProjectsPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
