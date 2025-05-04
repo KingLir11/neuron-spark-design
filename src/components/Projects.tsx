@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 interface ProjectType {
   id: number;
@@ -11,7 +12,10 @@ interface ProjectType {
 }
 
 const Projects: React.FC = () => {
-  const projects: ProjectType[] = [
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  
+  // Default projects data
+  const defaultProjects: ProjectType[] = [
     {
       id: 1,
       title: "Neural Style Transfer Pipeline",
@@ -55,6 +59,17 @@ const Projects: React.FC = () => {
       category: "Automation"
     }
   ];
+
+  // Load projects from localStorage or use default
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('projects');
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects));
+    } else {
+      setProjects(defaultProjects);
+      localStorage.setItem('projects', JSON.stringify(defaultProjects));
+    }
+  }, []);
 
   return (
     <section id="projects" className="py-20 bg-dark-100">

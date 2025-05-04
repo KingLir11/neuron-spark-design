@@ -4,10 +4,12 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Image, Video, Plus, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/components/ui/sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // Define project type for TypeScript
 interface Project {
@@ -27,9 +29,15 @@ const ProjectDetailPage: React.FC = () => {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editLongDescription, setEditLongDescription] = useState('');
+  const [editImage, setEditImage] = useState('');
+  const [editVideoUrl, setEditVideoUrl] = useState('');
+  const [editTools, setEditTools] = useState<string[]>([]);
+  const [newTool, setNewTool] = useState('');
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+  const [localProjects, setLocalProjects] = useState<Project[]>([]);
 
   // Default project data
-  const projectsData: Project[] = [
+  const defaultProjects: Project[] = [
     {
       id: 1,
       title: "Neural Style Transfer Pipeline",
@@ -86,28 +94,96 @@ const ProjectDetailPage: React.FC = () => {
     }
   ];
 
+  // Load projects from localStorage or use default
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('projects');
+    if (savedProjects) {
+      setLocalProjects(JSON.parse(savedProjects));
+    } else {
+      setLocalProjects(defaultProjects);
+      localStorage.setItem('projects', JSON.stringify(defaultProjects));
+    }
+  }, []);
+
   // Find project when component mounts or projectId changes
   useEffect(() => {
-    if (projectId) {
-      const foundProject = projectsData.find(p => p.id === parseInt(projectId));
+    if (projectId && localProjects.length > 0) {
+      const foundProject = localProjects.find(p => p.id === parseInt(projectId));
       if (foundProject) {
         setProject(foundProject);
         setEditTitle(foundProject.title);
         setEditDescription(foundProject.description);
         setEditLongDescription(foundProject.longDescription || '');
+        setEditImage(foundProject.image || '');
+        setEditVideoUrl(foundProject.videoUrl || '');
+        setEditTools([...foundProject.tools]);
+        setMediaType(foundProject.image ? 'image' : 'video');
       }
     }
-  }, [projectId]);
+  }, [projectId, localProjects]);
 
   const handleSaveChanges = () => {
     if (project) {
-      setProject({
+      const updatedProject = {
         ...project,
         title: editTitle,
         description: editDescription,
-        longDescription: editLongDescription
-      });
+        longDescription: editLongDescription,
+      };
+      
+      // Update with the correct media based on mediaType
+      if (mediaType === 'image') {
+        updatedProject.image = editImage;
+        updatedProject.videoUrl = undefined;
+      } else if (mediaType === 'video') {
+        updatedProject.videoUrl = editVideoUrl;
+        updatedProject.image = undefined;
+      }
+
+      // Update project in state and localStorage
+      const updatedProjects = localProjects.map(p => 
+        p.id === project.id ? updatedProject : p
+      );
+      
+      setProject(updatedProject);
+      setLocalProjects(updatedProjects);
+      localStorage.setItem('projects', JSON.stringify(updatedProjects));
+      
+      toast.success("Project updated successfully");
     }
+  };
+
+  const handleSaveTools = () => {
+    if (project) {
+      const updatedProject = {
+        ...project,
+        tools: [...editTools]
+      };
+
+      // Update project in state and localStorage
+      const updatedProjects = localProjects.map(p => 
+        p.id === project.id ? updatedProject : p
+      );
+      
+      setProject(updatedProject);
+      setLocalProjects(updatedProjects);
+      localStorage.setItem('projects', JSON.stringify(updatedProjects));
+      
+      toast.success("Tools updated successfully");
+    }
+  };
+
+  const handleAddTool = () => {
+    if (newTool.trim()) {
+      setEditTools([...editTools, newTool.trim()]);
+      setNewTool('');
+    }
+  };
+
+  const handleRemoveTool = (index: number) => {
+    const updatedTools = [...editTools];
+    updatedTools.splice(index, 1);
+    setEditTools(updatedTools);
   };
 
   if (!project) {
@@ -147,7 +223,10 @@ const ProjectDetailPage: React.FC = () => {
               
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline">Edit Project</Button>
+                  <Button variant="outline">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Project
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-dark-100 text-white border-gray-700 max-w-2xl">
                   <DialogHeader>
@@ -182,12 +261,73 @@ const ProjectDetailPage: React.FC = () => {
                       />
                     </div>
                     
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Media Type</label>
+                      <div className="flex gap-4">
+                        <Button 
+                          type="button" 
+                          variant={mediaType === 'image' ? 'default' : 'outline'}
+                          onClick={() => setMediaType('image')}
+                        >
+                          <Image className="mr-2 h-4 w-4" />
+                          Image
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant={mediaType === 'video' ? 'default' : 'outline'}
+                          onClick={() => setMediaType('video')}
+                        >
+                          <Video className="mr-2 h-4 w-4" />
+                          Video
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {mediaType === 'image' && (
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Image URL</label>
+                        <Input 
+                          value={editImage}
+                          onChange={(e) => setEditImage(e.target.value)}
+                          placeholder="https://example.com/image.jpg"
+                          className="bg-dark-200 border-gray-700 text-white"
+                        />
+                        {editImage && (
+                          <div className="mt-2 rounded overflow-hidden h-32">
+                            <img 
+                              src={editImage} 
+                              alt="Preview" 
+                              className="h-full w-auto object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+Image+URL';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {mediaType === 'video' && (
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Video URL</label>
+                        <Input 
+                          value={editVideoUrl}
+                          onChange={(e) => setEditVideoUrl(e.target.value)}
+                          placeholder="https://example.com/video.mp4"
+                          className="bg-dark-200 border-gray-700 text-white"
+                        />
+                      </div>
+                    )}
+                    
                     <div className="flex justify-end gap-2">
                       <DialogClose asChild>
                         <Button variant="ghost">Cancel</Button>
                       </DialogClose>
                       <DialogClose asChild>
-                        <Button onClick={handleSaveChanges}>Save Changes</Button>
+                        <Button onClick={handleSaveChanges}>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Changes
+                        </Button>
                       </DialogClose>
                     </div>
                   </div>
@@ -230,7 +370,76 @@ const ProjectDetailPage: React.FC = () => {
             
             <div>
               <div className="bg-dark-100 rounded-lg p-6 sticky top-24">
-                <h3 className="text-xl font-semibold mb-4">Project Details</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold">Project Details</h3>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="ghost">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-dark-100 text-white border-gray-700">
+                      <DialogHeader>
+                        <DialogTitle className="text-white">Edit Tools & Technologies</DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Current Tools</label>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {editTools.map((tool, idx) => (
+                              <div 
+                                key={idx}
+                                className="flex items-center bg-dark-200 text-gray-300 px-2 py-1 rounded"
+                              >
+                                <span className="text-xs">{tool}</span>
+                                <button 
+                                  onClick={() => handleRemoveTool(idx)}
+                                  className="ml-2 text-gray-400 hover:text-gray-200"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Add New Tool</label>
+                          <div className="flex gap-2">
+                            <Input
+                              value={newTool}
+                              onChange={(e) => setNewTool(e.target.value)}
+                              placeholder="Enter tool name"
+                              className="bg-dark-200 border-gray-700 text-white"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddTool();
+                                }
+                              }}
+                            />
+                            <Button onClick={handleAddTool}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-end gap-2 mt-4">
+                          <DialogClose asChild>
+                            <Button variant="ghost">Cancel</Button>
+                          </DialogClose>
+                          <DialogClose asChild>
+                            <Button onClick={handleSaveTools}>
+                              <Save className="mr-2 h-4 w-4" />
+                              Save Tools
+                            </Button>
+                          </DialogClose>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 
                 <div className="space-y-4">
                   <div>
