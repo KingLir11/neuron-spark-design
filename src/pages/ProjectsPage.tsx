@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
@@ -10,10 +10,14 @@ interface ProjectType {
   description: string;
   tools: string[];
   category: string;
+  image?: string;
 }
 
 const ProjectsPage: React.FC = () => {
-  const projects: ProjectType[] = [
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  
+  // Default projects data
+  const defaultProjects: ProjectType[] = [
     {
       id: 1,
       title: "Neural Style Transfer Pipeline",
@@ -58,6 +62,17 @@ const ProjectsPage: React.FC = () => {
     }
   ];
 
+  // Load projects from localStorage or use default
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('projects');
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects));
+    } else {
+      setProjects(defaultProjects);
+      localStorage.setItem('projects', JSON.stringify(defaultProjects));
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-dark-200 text-white">
       <Navbar />
@@ -79,9 +94,18 @@ const ProjectsPage: React.FC = () => {
                 className="block bg-dark-100 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
               >
                 <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-mono text-gray-400">{project.category}</span>
-                  </div>
+                  {project.image ? (
+                    <img 
+                      src={project.image} 
+                      alt={project.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-mono text-gray-400">{project.category}</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
                 
                 <div className="p-6">

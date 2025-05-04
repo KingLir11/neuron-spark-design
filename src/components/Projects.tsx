@@ -9,6 +9,7 @@ interface ProjectType {
   description: string;
   tools: string[];
   category: string;
+  image?: string;
 }
 
 const Projects: React.FC = () => {
@@ -89,9 +90,17 @@ const Projects: React.FC = () => {
               className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
             >
               <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-mono text-gray-400">{project.category}</span>
-                </div>
+                {project.image ? (
+                  <img 
+                    src={project.image} 
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-mono text-gray-400">{project.category}</span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
               

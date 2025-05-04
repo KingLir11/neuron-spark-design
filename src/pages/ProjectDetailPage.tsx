@@ -32,6 +32,7 @@ const ProjectDetailPage: React.FC = () => {
   const [editImage, setEditImage] = useState('');
   const [editVideoUrl, setEditVideoUrl] = useState('');
   const [editTools, setEditTools] = useState<string[]>([]);
+  const [editCategory, setEditCategory] = useState('');
   const [newTool, setNewTool] = useState('');
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [localProjects, setLocalProjects] = useState<Project[]>([]);
@@ -117,6 +118,7 @@ const ProjectDetailPage: React.FC = () => {
         setEditImage(foundProject.image || '');
         setEditVideoUrl(foundProject.videoUrl || '');
         setEditTools([...foundProject.tools]);
+        setEditCategory(foundProject.category || '');
         setMediaType(foundProject.image ? 'image' : 'video');
       }
     }
@@ -129,6 +131,7 @@ const ProjectDetailPage: React.FC = () => {
         title: editTitle,
         description: editDescription,
         longDescription: editLongDescription,
+        category: editCategory
       };
       
       // Update with the correct media based on mediaType
@@ -248,6 +251,15 @@ const ProjectDetailPage: React.FC = () => {
                       <Input 
                         value={editDescription}
                         onChange={(e) => setEditDescription(e.target.value)}
+                        className="bg-dark-200 border-gray-700 text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Category</label>
+                      <Input 
+                        value={editCategory}
+                        onChange={(e) => setEditCategory(e.target.value)}
                         className="bg-dark-200 border-gray-700 text-white"
                       />
                     </div>
