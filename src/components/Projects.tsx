@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { toast } from '@/components/ui/sonner';
 
 interface ProjectType {
   id: number;
@@ -67,14 +68,25 @@ const Projects: React.FC = () => {
     }
   ];
 
-  // Load projects from localStorage or use default
+  // Load projects from localStorage with error handling
   useEffect(() => {
-    const savedProjects = localStorage.getItem('projects');
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    } else {
+    try {
+      const savedProjects = localStorage.getItem('projects');
+      if (savedProjects) {
+        setProjects(JSON.parse(savedProjects));
+      } else {
+        setProjects(defaultProjects);
+        // Use a try-catch to handle potential storage errors
+        try {
+          localStorage.setItem('projects', JSON.stringify(defaultProjects));
+        } catch (error) {
+          console.error("Failed to save default projects to localStorage:", error);
+          toast.error("Unable to save project data to browser storage");
+        }
+      }
+    } catch (error) {
+      console.error("Error loading projects:", error);
       setProjects(defaultProjects);
-      localStorage.setItem('projects', JSON.stringify(defaultProjects));
     }
   }, []);
 

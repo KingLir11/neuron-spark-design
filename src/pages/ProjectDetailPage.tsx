@@ -1,16 +1,16 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Edit, Image, Video, Plus, X, Upload, FileImage, FileVideo } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { safelyStoreData, processImageForStorage, processVideoForStorage, getStorableCopy } from '@/utils/storageUtils';
 
 // Define project type for TypeScript
 interface Project {
@@ -43,7 +43,7 @@ const ProjectDetailPage: React.FC = () => {
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Default project data
+  // Default project data - same but exported to a utility if needed in the future
   const defaultProjects: Project[] = [
     {
       id: 1,
@@ -103,12 +103,17 @@ const ProjectDetailPage: React.FC = () => {
 
   // Load projects from localStorage or use default
   useEffect(() => {
-    const savedProjects = localStorage.getItem('projects');
-    if (savedProjects) {
-      setLocalProjects(JSON.parse(savedProjects));
-    } else {
+    try {
+      const savedProjects = localStorage.getItem('projects');
+      if (savedProjects) {
+        setLocalProjects(JSON.parse(savedProjects));
+      } else {
+        setLocalProjects(defaultProjects);
+        safelyStoreData('projects', defaultProjects);
+      }
+    } catch (error) {
+      console.error("Error loading projects:", error);
       setLocalProjects(defaultProjects);
-      localStorage.setItem('projects', JSON.stringify(defaultProjects));
     }
   }, []);
 
@@ -149,16 +154,23 @@ const ProjectDetailPage: React.FC = () => {
         updatedProject.images = [];
       }
 
-      // Update project in state and localStorage
+      // Update project in state 
       const updatedProjects = localProjects.map(p => 
         p.id === project.id ? updatedProject : p
       );
       
       setProject(updatedProject);
       setLocalProjects(updatedProjects);
-      localStorage.setItem('projects', JSON.stringify(updatedProjects));
       
-      toast.success("Project updated successfully");
+      // Process for storage and save to localStorage with error handling
+      const storableProjects = getStorableCopy(updatedProjects);
+      const saved = safelyStoreData('projects', storableProjects);
+      
+      if (saved) {
+        toast.success("Project updated successfully");
+      } else {
+        toast.warning("Project updated but some media content may not be saved due to storage limits");
+      }
     }
   };
 
@@ -169,16 +181,22 @@ const ProjectDetailPage: React.FC = () => {
         tools: [...editTools]
       };
 
-      // Update project in state and localStorage
+      // Update project in state
       const updatedProjects = localProjects.map(p => 
         p.id === project.id ? updatedProject : p
       );
       
       setProject(updatedProject);
       setLocalProjects(updatedProjects);
-      localStorage.setItem('projects', JSON.stringify(updatedProjects));
       
-      toast.success("Tools updated successfully");
+      // Process for storage and save to localStorage with error handling
+      const saved = safelyStoreData('projects', updatedProjects);
+      
+      if (saved) {
+        toast.success("Tools updated successfully");
+      } else {
+        toast.warning("Changes might not be saved due to storage limits");
+      }
     }
   };
 
@@ -198,7 +216,9 @@ const ProjectDetailPage: React.FC = () => {
   // Handle image URL addition
   const handleAddImageUrl = () => {
     if (newImageUrl.trim()) {
-      setEditImages([...editImages, newImageUrl.trim()]);
+      // Process the image to ensure it's storage-friendly
+      const processedUrl = processImageForStorage(newImageUrl.trim());
+      setEditImages([...editImages, processedUrl]);
       setNewImageUrl('');
     }
   };
@@ -210,34 +230,66 @@ const ProjectDetailPage: React.FC = () => {
     setEditImages(updatedImages);
   };
 
-  // Handle image file upload
+  // Handle image file upload with size constraints
   const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      Array.from(files).forEach(file => {
+      // Limit to 3 files at once for better performance
+      const selectedFiles = Array.from(files).slice(0, 3);
+      
+      selectedFiles.forEach(file => {
+        // Check file size (limit to 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          toast.warning(`File ${file.name} is too large (max 2MB). Please choose a smaller file.`);
+          return;
+        }
+        
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target && event.target.result) {
-            setEditImages(prev => [...prev, event.target!.result as string]);
+            const result = event.target.result as string;
+            // Process the image for storage
+            const processedImage = processImageForStorage(result);
+            setEditImages(prev => [...prev, processedImage]);
           }
         };
         reader.readAsDataURL(file);
       });
     }
+    
+    // Reset the input value to allow selecting the same file again
+    if (e.target) {
+      e.target.value = '';
+    }
   };
 
-  // Handle video file upload
+  // Handle video file upload with size constraints
   const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0]; // Only take the first video
+      
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.warning("Video file is too large (max 5MB). Please choose a smaller file.");
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target && event.target.result) {
-          setEditVideoUrl(event.target!.result as string);
+          const result = event.target.result as string;
+          // Process the video for storage
+          const processedVideo = processVideoForStorage(result);
+          setEditVideoUrl(processedVideo);
         }
       };
       reader.readAsDataURL(file);
+    }
+    
+    // Reset the input value to allow selecting the same file again
+    if (e.target) {
+      e.target.value = '';
     }
   };
 
@@ -286,6 +338,9 @@ const ProjectDetailPage: React.FC = () => {
                 <DialogContent className="bg-dark-100 text-white border-gray-700 max-w-2xl">
                   <DialogHeader>
                     <DialogTitle className="text-white">Edit Project Details</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      Make changes to your project. Large media files may have limits due to browser storage.
+                    </DialogDescription>
                   </DialogHeader>
                   
                   <div className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-2">
@@ -350,12 +405,13 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'image' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Current Images</label>
+                          <label className="text-sm font-medium">Current Images <span className="text-xs text-gray-400">(max 3 recommended)</span></label>
                           <div className="flex gap-2">
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => imageFileInputRef.current?.click()}
+                              title="Max size: 2MB per image"
                             >
                               <Upload className="mr-2 h-4 w-4" />
                               Upload Image
@@ -417,11 +473,12 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'video' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Video</label>
+                          <label className="text-sm font-medium">Video <span className="text-xs text-gray-400">(max 5MB)</span></label>
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => videoFileInputRef.current?.click()}
+                            title="Max size: 5MB"
                           >
                             <Upload className="mr-2 h-4 w-4" />
                             Upload Video

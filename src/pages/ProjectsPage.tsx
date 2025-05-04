@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
+import { toast } from '@/components/ui/sonner';
 
 interface ProjectType {
   id: number;
@@ -68,14 +69,24 @@ const ProjectsPage: React.FC = () => {
     }
   ];
 
-  // Load projects from localStorage or use default
+  // Load projects from localStorage with error handling
   useEffect(() => {
-    const savedProjects = localStorage.getItem('projects');
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    } else {
+    try {
+      const savedProjects = localStorage.getItem('projects');
+      if (savedProjects) {
+        setProjects(JSON.parse(savedProjects));
+      } else {
+        setProjects(defaultProjects);
+        try {
+          localStorage.setItem('projects', JSON.stringify(defaultProjects));
+        } catch (error) {
+          console.error("Failed to save default projects to localStorage:", error);
+          toast.error("Unable to save project data to browser storage");
+        }
+      }
+    } catch (error) {
+      console.error("Error loading projects:", error);
       setProjects(defaultProjects);
-      localStorage.setItem('projects', JSON.stringify(defaultProjects));
     }
   }, []);
 
@@ -105,6 +116,9 @@ const ProjectsPage: React.FC = () => {
                       src={project.images[0]} 
                       alt={project.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
+                      }}
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
