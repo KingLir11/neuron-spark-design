@@ -4,9 +4,16 @@
 
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_BUCKET = 'project_media';
+
+/**
+ * Generate a simple unique ID for filenames
+ * This is a fallback method in case uuid package isn't available
+ */
+const generateUniqueId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
 
 /**
  * Attempts to store data in localStorage with error handling
@@ -47,12 +54,12 @@ export const uploadImageToStorage = async (imageData: string | File): Promise<st
       const res = await fetch(imageData);
       const blob = await res.blob();
       fileExt = imageData.split(';')[0].split('/')[1] || 'png';
-      fileName = `${uuidv4()}.${fileExt}`;
+      fileName = `${generateUniqueId()}.${fileExt}`;
       file = new File([blob], fileName, { type: `image/${fileExt}` });
     } else if (imageData instanceof File) {
       file = imageData;
       fileExt = file.name.split('.').pop() || 'png';
-      fileName = `${uuidv4()}.${fileExt}`;
+      fileName = `${generateUniqueId()}.${fileExt}`;
     } else {
       // If it's an external URL, just return it
       if (typeof imageData === 'string' && (imageData.startsWith('http://') || imageData.startsWith('https://'))) {
@@ -108,12 +115,12 @@ export const uploadVideoToStorage = async (videoData: string | File): Promise<st
       const res = await fetch(videoData);
       const blob = await res.blob();
       fileExt = videoData.split(';')[0].split('/')[1] || 'mp4';
-      fileName = `${uuidv4()}.${fileExt}`;
+      fileName = `${generateUniqueId()}.${fileExt}`;
       file = new File([blob], fileName, { type: `video/${fileExt}` });
     } else if (videoData instanceof File) {
       file = videoData;
       fileExt = file.name.split('.').pop() || 'mp4';
-      fileName = `${uuidv4()}.${fileExt}`;
+      fileName = `${generateUniqueId()}.${fileExt}`;
     } else {
       // If it's an external URL, just return it
       if (typeof videoData === 'string' && (videoData.startsWith('http://') || videoData.startsWith('https://'))) {
@@ -198,7 +205,3 @@ export const getStorableCopy = (projects: any[]): any[] => {
     return processedProject;
   });
 };
-
-/**
- * Add uuid package for generating unique filenames
- */
