@@ -10,7 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { safelyStoreData, processImageForStorage, processVideoForStorage, getStorableCopy } from '@/utils/storageUtils';
+import { 
+  safelyStoreData, 
+  processImageForStorage, 
+  processVideoForStorage, 
+  getStorableCopy,
+  uploadImageToStorage,
+  uploadVideoToStorage 
+} from '@/utils/storageUtils';
 
 // Define project type for TypeScript
 interface Project {
@@ -38,6 +45,7 @@ const ProjectDetailPage: React.FC = () => {
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [localProjects, setLocalProjects] = useState<Project[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Refs for file inputs
   const imageFileInputRef = useRef<HTMLInputElement>(null);
@@ -135,41 +143,68 @@ const ProjectDetailPage: React.FC = () => {
     }
   }, [projectId, localProjects]);
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (project) {
-      const updatedProject = {
-        ...project,
-        title: editTitle,
-        description: editDescription,
-        longDescription: editLongDescription,
-        category: editCategory,
-      };
+      setIsLoading(true);
+      toast.info("Saving changes and processing media...");
       
-      // Update with the correct media based on mediaType
-      if (mediaType === 'image') {
-        updatedProject.images = editImages;
-        updatedProject.videoUrl = undefined;
-      } else if (mediaType === 'video') {
-        updatedProject.videoUrl = editVideoUrl;
-        updatedProject.images = [];
-      }
+      try {
+        const updatedProject = {
+          ...project,
+          title: editTitle,
+          description: editDescription,
+          longDescription: editLongDescription,
+          category: editCategory,
+        };
+        
+        // Process media based on mediaType
+        if (mediaType === 'image') {
+          // Process all images that are data URLs
+          const processedImages = await Promise.all(
+            editImages.map(async (img) => {
+              if (img.startsWith('data:')) {
+                return await processImageForStorage(img);
+              }
+              return img;
+            })
+          );
+          
+          // Filter out any failed uploads
+          updatedProject.images = processedImages.filter(url => url);
+          updatedProject.videoUrl = undefined;
+        } else if (mediaType === 'video') {
+          // Process video if it's a data URL
+          if (editVideoUrl.startsWith('data:')) {
+            const processedVideoUrl = await processVideoForStorage(editVideoUrl);
+            updatedProject.videoUrl = processedVideoUrl;
+          } else {
+            updatedProject.videoUrl = editVideoUrl;
+          }
+          updatedProject.images = [];
+        }
 
-      // Update project in state 
-      const updatedProjects = localProjects.map(p => 
-        p.id === project.id ? updatedProject : p
-      );
-      
-      setProject(updatedProject);
-      setLocalProjects(updatedProjects);
-      
-      // Process for storage and save to localStorage with error handling
-      const storableProjects = getStorableCopy(updatedProjects);
-      const saved = safelyStoreData('projects', storableProjects);
-      
-      if (saved) {
-        toast.success("Project updated successfully");
-      } else {
-        toast.warning("Project updated but some media content may not be saved due to storage limits");
+        // Update project in state 
+        const updatedProjects = localProjects.map(p => 
+          p.id === project.id ? updatedProject : p
+        );
+        
+        setProject(updatedProject);
+        setLocalProjects(updatedProjects);
+        
+        // Save to localStorage (only metadata and URLs)
+        const storableProjects = getStorableCopy(updatedProjects);
+        const saved = safelyStoreData('projects', storableProjects);
+        
+        if (saved) {
+          toast.success("Project updated successfully");
+        } else {
+          toast.warning("Project updated but there might be issues with local storage");
+        }
+      } catch (error) {
+        console.error("Error saving project:", error);
+        toast.error("Failed to update project");
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -189,7 +224,7 @@ const ProjectDetailPage: React.FC = () => {
       setProject(updatedProject);
       setLocalProjects(updatedProjects);
       
-      // Process for storage and save to localStorage with error handling
+      // Save to localStorage
       const saved = safelyStoreData('projects', updatedProjects);
       
       if (saved) {
@@ -216,9 +251,7 @@ const ProjectDetailPage: React.FC = () => {
   // Handle image URL addition
   const handleAddImageUrl = () => {
     if (newImageUrl.trim()) {
-      // Process the image to ensure it's storage-friendly
-      const processedUrl = processImageForStorage(newImageUrl.trim());
-      setEditImages([...editImages, processedUrl]);
+      setEditImages([...editImages, newImageUrl.trim()]);
       setNewImageUrl('');
     }
   };
@@ -234,13 +267,13 @@ const ProjectDetailPage: React.FC = () => {
   const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Limit to 5 files at once for better performance
-      const selectedFiles = Array.from(files).slice(0, 5);
+      // Allow multiple files, now that we're using Supabase storage
+      const selectedFiles = Array.from(files);
       
       selectedFiles.forEach(file => {
-        // Increased file size limit to 5MB (from 2MB)
-        if (file.size > 5 * 1024 * 1024) {
-          toast.warning(`File ${file.name} is too large (max 5MB). Please choose a smaller file.`);
+        // Increased file size limit to 10MB
+        if (file.size > 10 * 1024 * 1024) {
+          toast.warning(`File ${file.name} is too large (max 10MB). Please choose a smaller file.`);
           return;
         }
         
@@ -248,9 +281,7 @@ const ProjectDetailPage: React.FC = () => {
         reader.onload = (event) => {
           if (event.target && event.target.result) {
             const result = event.target.result as string;
-            // Process the image for storage
-            const processedImage = processImageForStorage(result);
-            setEditImages(prev => [...prev, processedImage]);
+            setEditImages(prev => [...prev, result]);
           }
         };
         reader.readAsDataURL(file);
@@ -269,9 +300,9 @@ const ProjectDetailPage: React.FC = () => {
     if (files && files.length > 0) {
       const file = files[0]; // Only take the first video
       
-      // Increased file size limit to 10MB (from 5MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.warning("Video file is too large (max 10MB). Please choose a smaller file.");
+      // Increased file size limit to 100MB
+      if (file.size > 100 * 1024 * 1024) {
+        toast.warning("Video file is too large (max 100MB). Please choose a smaller file.");
         return;
       }
       
@@ -279,9 +310,7 @@ const ProjectDetailPage: React.FC = () => {
       reader.onload = (event) => {
         if (event.target && event.target.result) {
           const result = event.target.result as string;
-          // Process the video for storage
-          const processedVideo = processVideoForStorage(result);
-          setEditVideoUrl(processedVideo);
+          setEditVideoUrl(result);
         }
       };
       reader.readAsDataURL(file);
@@ -339,7 +368,7 @@ const ProjectDetailPage: React.FC = () => {
                   <DialogHeader>
                     <DialogTitle className="text-white">Edit Project Details</DialogTitle>
                     <DialogDescription className="text-gray-400">
-                      Make changes to your project. Large media files may have limits due to browser storage.
+                      Make changes to your project. Media is now stored in the cloud with higher size limits.
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -405,13 +434,13 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'image' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Project Images <span className="text-xs text-gray-400">(max size: 5MB each)</span></label>
+                          <label className="text-sm font-medium">Project Images <span className="text-xs text-gray-400">(max size: 10MB each)</span></label>
                           <div className="flex gap-2">
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => imageFileInputRef.current?.click()}
-                              title="Max size: 5MB per image"
+                              title="Max size: 10MB per image"
                             >
                               <Upload className="mr-2 h-4 w-4" />
                               Upload Image
@@ -473,12 +502,12 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'video' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Video <span className="text-xs text-gray-400">(max 10MB)</span></label>
+                          <label className="text-sm font-medium">Video <span className="text-xs text-gray-400">(max 100MB)</span></label>
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => videoFileInputRef.current?.click()}
-                            title="Max size: 10MB"
+                            title="Max size: 100MB"
                           >
                             <Upload className="mr-2 h-4 w-4" />
                             Upload Video
@@ -522,12 +551,19 @@ const ProjectDetailPage: React.FC = () => {
                       <DialogClose asChild>
                         <Button variant="ghost">Cancel</Button>
                       </DialogClose>
-                      <DialogClose asChild>
-                        <Button onClick={handleSaveChanges}>
-                          <Save className="mr-2 h-4 w-4" />
-                          Save Changes
-                        </Button>
-                      </DialogClose>
+                      <Button 
+                        onClick={handleSaveChanges} 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>Processing...</>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </div>
                 </DialogContent>

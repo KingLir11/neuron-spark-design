@@ -113,6 +113,9 @@ const Projects: React.FC = () => {
                     src={project.images[0]} 
                     alt={project.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
+                    }}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
