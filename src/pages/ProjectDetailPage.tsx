@@ -230,17 +230,17 @@ const ProjectDetailPage: React.FC = () => {
     setEditImages(updatedImages);
   };
 
-  // Handle image file upload with size constraints
+  // Handle image file upload with increased size constraints
   const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Limit to 3 files at once for better performance
-      const selectedFiles = Array.from(files).slice(0, 3);
+      // Limit to 5 files at once for better performance
+      const selectedFiles = Array.from(files).slice(0, 5);
       
       selectedFiles.forEach(file => {
-        // Check file size (limit to 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-          toast.warning(`File ${file.name} is too large (max 2MB). Please choose a smaller file.`);
+        // Increased file size limit to 5MB (from 2MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.warning(`File ${file.name} is too large (max 5MB). Please choose a smaller file.`);
           return;
         }
         
@@ -263,15 +263,15 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
-  // Handle video file upload with size constraints
+  // Handle video file upload with increased size constraints
   const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0]; // Only take the first video
       
-      // Check file size (limit to 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.warning("Video file is too large (max 5MB). Please choose a smaller file.");
+      // Increased file size limit to 10MB (from 5MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.warning("Video file is too large (max 10MB). Please choose a smaller file.");
         return;
       }
       
@@ -405,13 +405,13 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'image' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Current Images <span className="text-xs text-gray-400">(max 3 recommended)</span></label>
+                          <label className="text-sm font-medium">Project Images <span className="text-xs text-gray-400">(max size: 5MB each)</span></label>
                           <div className="flex gap-2">
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => imageFileInputRef.current?.click()}
-                              title="Max size: 2MB per image"
+                              title="Max size: 5MB per image"
                             >
                               <Upload className="mr-2 h-4 w-4" />
                               Upload Image
@@ -473,12 +473,12 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'video' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Video <span className="text-xs text-gray-400">(max 5MB)</span></label>
+                          <label className="text-sm font-medium">Video <span className="text-xs text-gray-400">(max 10MB)</span></label>
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => videoFileInputRef.current?.click()}
-                            title="Max size: 5MB"
+                            title="Max size: 10MB"
                           >
                             <Upload className="mr-2 h-4 w-4" />
                             Upload Video
@@ -537,36 +537,27 @@ const ProjectDetailPage: React.FC = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              {/* Show carousel if multiple images exist */}
+              {/* About this project section - moved above images */}
+              <div className="prose prose-invert max-w-none mb-8">
+                <h2 className="text-2xl font-semibold mb-4">About this project</h2>
+                <p className="text-gray-300 mb-6 text-lg">
+                  {project.longDescription || project.description}
+                </p>
+              </div>
+              
+              {/* Vertically stacked images */}
               {project.images && project.images.length > 0 && (
-                <div className="mb-6">
-                  {project.images.length > 1 ? (
-                    <Carousel className="w-full">
-                      <CarouselContent>
-                        {project.images.map((img, index) => (
-                          <CarouselItem key={index}>
-                            <div className="rounded-lg overflow-hidden bg-dark-100">
-                              <img 
-                                src={img} 
-                                alt={`${project.title} - Image ${index + 1}`} 
-                                className="w-full object-cover h-[400px]"
-                              />
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-2" />
-                      <CarouselNext className="right-2" />
-                    </Carousel>
-                  ) : (
-                    <div className="rounded-lg overflow-hidden bg-dark-100">
+                <div className="space-y-6 mb-8">
+                  {project.images.map((img, index) => (
+                    <div key={index} className="rounded-lg overflow-hidden bg-dark-100 shadow-md transition-transform hover:scale-[1.01]">
                       <img 
-                        src={project.images[0]} 
-                        alt={project.title} 
-                        className="w-full object-cover h-[400px]"
+                        src={img} 
+                        alt={`${project.title} - Image ${index + 1}`} 
+                        className="w-full object-cover"
+                        loading={index === 0 ? "eager" : "lazy"}
                       />
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
               
@@ -574,20 +565,13 @@ const ProjectDetailPage: React.FC = () => {
                 <div className="rounded-lg overflow-hidden mb-6 bg-dark-100">
                   <video 
                     controls 
-                    className="w-full h-[400px] object-cover"
+                    className="w-full object-cover"
                   >
                     <source src={project.videoUrl} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
               )}
-              
-              <div className="prose prose-invert max-w-none">
-                <h2 className="text-2xl font-semibold mb-4">About this project</h2>
-                <p className="text-gray-300 mb-6 text-lg">
-                  {project.longDescription || project.description}
-                </p>
-              </div>
             </div>
             
             <div>
@@ -603,6 +587,9 @@ const ProjectDetailPage: React.FC = () => {
                     <DialogContent className="bg-dark-100 text-white border-gray-700">
                       <DialogHeader>
                         <DialogTitle className="text-white">Edit Tools & Technologies</DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                          Add or remove tools used in this project.
+                        </DialogDescription>
                       </DialogHeader>
                       
                       <div className="mt-4 space-y-4">

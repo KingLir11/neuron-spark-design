@@ -15,7 +15,7 @@ export const safelyStoreData = (key: string, data: any): boolean => {
     
     // Check estimated size before attempting to save (rough estimate)
     // ~2 bytes per character in a JSON string, 5MB limit in most browsers
-    if (jsonString.length > 2500000) { // ~2.5MB safety threshold
+    if (jsonString.length > 3500000) { // ~3.5MB safety threshold (increased from 2.5MB)
       console.warn("Data too large for localStorage, attempting to reduce size");
       return false;
     }
@@ -64,8 +64,8 @@ export const getStorableCopy = (projects: any[]): any[] => {
     
     // Process images if needed
     if (project.images && project.images.length > 0) {
-      // Limit to at most 3 images per project for storage
-      const limitedImages = project.images.slice(0, 3);
+      // Limit to at most 5 images per project for storage (increased from 3)
+      const limitedImages = project.images.slice(0, 5);
       
       // Process each image (potential future optimization)
       processedProject.images = limitedImages;
