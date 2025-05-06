@@ -191,7 +191,24 @@ const ProjectDetailPage: React.FC = () => {
         setProject(updatedProject);
         setLocalProjects(updatedProjects);
         
-        // Save to localStorage (only metadata and URLs)
+        // Save to Supabase
+        const { error } = await supabase.from('projects').upsert({
+          id: updatedProject.id,
+          title: updatedProject.title,
+          description: updatedProject.description,
+          tools: updatedProject.tools,
+          category: updatedProject.category,
+          long_description: updatedProject.longDescription,
+          images: updatedProject.images || [],
+          video_url: updatedProject.videoUrl
+        });
+        
+        if (error) {
+          console.error('Error saving to Supabase:', error);
+          throw error;
+        }
+        
+        // Also save to localStorage as a backup
         const storableProjects = getStorableCopy(updatedProjects);
         const saved = safelyStoreData('projects', storableProjects);
         
@@ -209,7 +226,7 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
-  const handleSaveTools = () => {
+  const handleSaveTools = async () => {
     if (project) {
       const updatedProject = {
         ...project,
@@ -224,13 +241,23 @@ const ProjectDetailPage: React.FC = () => {
       setProject(updatedProject);
       setLocalProjects(updatedProjects);
       
-      // Save to localStorage
-      const saved = safelyStoreData('projects', updatedProjects);
-      
-      if (saved) {
+      try {
+        // Save to Supabase
+        const { error } = await supabase.from('projects').update({
+          tools: editTools
+        }).eq('id', project.id);
+        
+        if (error) {
+          console.error('Error saving tools to Supabase:', error);
+          throw error;
+        }
+        
+        // Also save to localStorage as a backup
+        const saved = safelyStoreData('projects', updatedProjects);
         toast.success("Tools updated successfully");
-      } else {
-        toast.warning("Changes might not be saved due to storage limits");
+      } catch (error) {
+        console.error("Error saving tools:", error);
+        toast.warning("Changes might not be saved to the database");
       }
     }
   };

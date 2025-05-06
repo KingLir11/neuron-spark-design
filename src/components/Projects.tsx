@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectType {
   id: number;
@@ -16,8 +16,9 @@ interface ProjectType {
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   
-  // Default projects data
+  // Default projects data - used as fallback
   const defaultProjects: ProjectType[] = [
     {
       id: 1,
@@ -68,26 +69,96 @@ const Projects: React.FC = () => {
     }
   ];
 
-  // Load projects from localStorage with error handling
+  // Load projects from Supabase with fallback to localStorage
   useEffect(() => {
-    try {
-      const savedProjects = localStorage.getItem('projects');
-      if (savedProjects) {
-        setProjects(JSON.parse(savedProjects));
-      } else {
-        setProjects(defaultProjects);
-        // Use a try-catch to handle potential storage errors
-        try {
-          localStorage.setItem('projects', JSON.stringify(defaultProjects));
-        } catch (error) {
-          console.error("Failed to save default projects to localStorage:", error);
-          toast.error("Unable to save project data to browser storage");
+    async function fetchProjects() {
+      try {
+        setLoading(true);
+        // Try to fetch from Supabase first
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*');
+        
+        if (error) {
+          throw error;
         }
+        
+        if (data && data.length > 0) {
+          // Transform data if needed (videoUrl -> video_url)
+          const transformedData = data.map(project => ({
+            ...project,
+            videoUrl: project.video_url,
+            // Ensure tools is an array
+            tools: Array.isArray(project.tools) ? project.tools : []
+          }));
+          
+          setProjects(transformedData);
+          console.log('Projects loaded from Supabase:', transformedData);
+        } else {
+          // No data in Supabase yet, try localStorage
+          const savedProjects = localStorage.getItem('projects');
+          if (savedProjects) {
+            const parsedProjects = JSON.parse(savedProjects);
+            setProjects(parsedProjects);
+            
+            // Since we have projects in localStorage but not Supabase,
+            // initialize Supabase with these projects
+            parsedProjects.forEach(async (project: ProjectType) => {
+              await supabase.from('projects').upsert({
+                id: project.id,
+                title: project.title,
+                description: project.description,
+                tools: project.tools,
+                category: project.category,
+                long_description: project.longDescription,
+                images: project.images || [],
+                video_url: project.videoUrl
+              });
+            });
+            
+            console.log('Projects loaded from localStorage and synced to Supabase');
+          } else {
+            // No projects in localStorage either, use defaults
+            setProjects(defaultProjects);
+            
+            // Initialize Supabase with default projects
+            defaultProjects.forEach(async (project) => {
+              await supabase.from('projects').upsert({
+                id: project.id,
+                title: project.title,
+                description: project.description,
+                tools: project.tools,
+                category: project.category,
+                long_description: project.longDescription,
+                images: project.images || [],
+                video_url: project.videoUrl
+              });
+            });
+            
+            console.log('Default projects loaded and synced to Supabase');
+          }
+        }
+      } catch (error) {
+        console.error("Error loading projects:", error);
+        toast.error("Failed to load projects");
+        
+        // Fallback to localStorage or default
+        try {
+          const savedProjects = localStorage.getItem('projects');
+          if (savedProjects) {
+            setProjects(JSON.parse(savedProjects));
+          } else {
+            setProjects(defaultProjects);
+          }
+        } catch (e) {
+          setProjects(defaultProjects);
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading projects:", error);
-      setProjects(defaultProjects);
     }
+    
+    fetchProjects();
   }, []);
 
   return (
@@ -100,53 +171,59 @@ const Projects: React.FC = () => {
           A selection of my recent work showcasing AI capabilities across different domains.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project, index) => (
-            <Link 
-              to={`/project/${project.id}`} 
-              key={index}
-              className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
-            >
-              <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
-                {project.images && project.images.length > 0 ? (
-                  <img 
-                    src={project.images[0]} 
-                    alt={project.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
-                    }}
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-mono text-gray-400">{project.category}</span>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </div>
-              
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
-                  {project.title}
-                </h3>
-                <p className="text-gray-300 mb-4 text-sm">
-                  {project.description}
-                </p>
-                
-                <div className="flex flex-wrap gap-2">
-                  {project.tools.map((tool, idx) => (
-                    <span 
-                      key={idx}
-                      className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"
-                    >
-                      {tool}
-                    </span>
-                  ))}
+        {loading ? (
+          <div className="flex justify-center">
+            <div className="animate-pulse text-primary">Loading projects...</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.map((project, index) => (
+              <Link 
+                to={`/project/${project.id}`} 
+                key={index}
+                className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
+              >
+                <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
+                  {project.images && project.images.length > 0 ? (
+                    <img 
+                      src={project.images[0]} 
+                      alt={project.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-mono text-gray-400">{project.category}</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
+                    {project.title}
+                  </h3>
+                  <p className="text-gray-300 mb-4 text-sm">
+                    {project.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {project.tools.map((tool, idx) => (
+                      <span 
+                        key={idx}
+                        className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"
+                      >
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

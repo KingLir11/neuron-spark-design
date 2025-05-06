@@ -18,19 +18,50 @@ const generateUniqueId = () => {
 
 /**
  * Attempts to store data in localStorage with error handling
+ * Also syncs data to Supabase for persistence
  */
-export const safelyStoreData = (key: string, data: any): boolean => {
+export const safelyStoreData = async (key: string, data: any): Promise<boolean> => {
   try {
-    // For projects data without the large media content
+    // Store data in localStorage as a fallback
     const jsonString = JSON.stringify(data);
     
-    // Check estimated size before attempting to save
+    // Check estimated size before attempting to save to localStorage
     if (jsonString.length > 3500000) { // ~3.5MB safety threshold
-      console.warn("Data too large for localStorage, reducing size");
-      return false;
+      console.warn("Data too large for localStorage, only saving to Supabase");
+    } else {
+      localStorage.setItem(key, jsonString);
     }
     
-    localStorage.setItem(key, jsonString);
+    // If this is project data, sync with Supabase
+    if (key === 'projects') {
+      try {
+        // For each project, upsert to Supabase
+        await Promise.all(data.map(async (project: any) => {
+          const { error } = await supabase.from('projects').upsert({
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            tools: project.tools,
+            category: project.category,
+            long_description: project.longDescription,
+            images: project.images || [],
+            video_url: project.videoUrl
+          });
+          
+          if (error) {
+            console.error('Error syncing project to Supabase:', error);
+            throw error;
+          }
+        }));
+        
+        console.log('Projects synced to Supabase successfully');
+      } catch (error) {
+        console.error('Failed to sync projects to Supabase:', error);
+        toast.error("Changes saved locally but failed to sync to the cloud");
+        return false;
+      }
+    }
+    
     return true;
   } catch (error) {
     console.error("Storage error:", error);
