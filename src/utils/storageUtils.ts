@@ -1,3 +1,4 @@
+
 /**
  * Utilities for handling storage and media files
  */
@@ -39,6 +40,28 @@ export const safelyStoreData = (key: string, data: any): boolean => {
 };
 
 /**
+ * Ensures the storage bucket exists and is ready to use
+ */
+export const initializeStorage = async (): Promise<boolean> => {
+  try {
+    // Check if our bucket exists
+    const { data, error } = await supabase.storage.getBucket(STORAGE_BUCKET);
+    
+    if (error) {
+      console.error('Error checking storage bucket:', error);
+      toast.error('Media storage not available. Some features may be limited.');
+      return false;
+    }
+    
+    console.info('Storage bucket is ready:', STORAGE_BUCKET);
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize storage:', error);
+    return false;
+  }
+};
+
+/**
  * Upload image to Supabase storage
  * Returns the URL of the uploaded image
  */
@@ -74,22 +97,30 @@ export const uploadImageToStorage = async (imageData: string | File): Promise<st
       throw new Error('File too large');
     }
 
+    console.log(`Uploading image ${fileName} to ${STORAGE_BUCKET}/images`);
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(`images/${fileName}`, file);
+      .upload(`images/${fileName}`, file, {
+        upsert: true, // Enable upsert in case the file already exists
+        cacheControl: '3600'
+      });
 
     if (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload image');
+      toast.error('Failed to upload image. Please try again.');
       throw error;
     }
+
+    console.log('Image uploaded successfully:', data?.path);
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(`images/${fileName}`);
 
+    console.log('Public URL generated:', publicUrl);
     return publicUrl;
   } catch (error) {
     console.error('Upload processing error:', error);
@@ -135,22 +166,30 @@ export const uploadVideoToStorage = async (videoData: string | File): Promise<st
       throw new Error('File too large');
     }
 
+    console.log(`Uploading video ${fileName} to ${STORAGE_BUCKET}/videos`);
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(`videos/${fileName}`, file);
+      .upload(`videos/${fileName}`, file, {
+        upsert: true, // Enable upsert in case the file already exists
+        cacheControl: '3600'
+      });
 
     if (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload video');
+      toast.error('Failed to upload video. Please try again.');
       throw error;
     }
+
+    console.log('Video uploaded successfully:', data?.path);
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(`videos/${fileName}`);
 
+    console.log('Public URL generated:', publicUrl);
     return publicUrl;
   } catch (error) {
     console.error('Upload processing error:', error);
