@@ -48,7 +48,7 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="text-2xl font-display font-bold text-primary glow">
-            AI<span className="text-white">Liran</span>
+            AI<span className="text-white">Expert</span>
           </Link>
 
           {/* Desktop Navigation */}
