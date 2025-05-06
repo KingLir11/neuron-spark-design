@@ -18,6 +18,7 @@ import {
   uploadImageToStorage,
   uploadVideoToStorage 
 } from '@/utils/storageUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define project type for TypeScript
 interface Project {

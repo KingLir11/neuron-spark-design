@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -10,8 +11,9 @@ interface ProjectType {
   description: string;
   tools: string[];
   category: string;
+  longDescription?: string; // Changed from long_description to match ProjectType interface
   images?: string[];
-  videoUrl?: string;
+  videoUrl?: string; // Changed from video_url to match ProjectType interface
 }
 
 const Projects: React.FC = () => {
@@ -84,12 +86,16 @@ const Projects: React.FC = () => {
         }
         
         if (data && data.length > 0) {
-          // Transform data if needed (videoUrl -> video_url)
+          // Transform data if needed (video_url -> videoUrl)
           const transformedData = data.map(project => ({
-            ...project,
-            videoUrl: project.video_url,
-            // Ensure tools is an array
-            tools: Array.isArray(project.tools) ? project.tools : []
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            tools: Array.isArray(project.tools) ? project.tools : [],
+            category: project.category,
+            longDescription: project.long_description,
+            images: project.images || [],
+            videoUrl: project.video_url
           }));
           
           setProjects(transformedData);

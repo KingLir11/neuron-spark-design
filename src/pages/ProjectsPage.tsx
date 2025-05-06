@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectType {
   id: number;
@@ -13,6 +14,7 @@ interface ProjectType {
   category: string;
   images?: string[];
   videoUrl?: string;
+  longDescription?: string;
 }
 
 const ProjectsPage: React.FC = () => {
@@ -69,25 +71,62 @@ const ProjectsPage: React.FC = () => {
     }
   ];
 
-  // Load projects from localStorage with error handling
+  // Load projects from supabase with localStorage as fallback
   useEffect(() => {
-    try {
-      const savedProjects = localStorage.getItem('projects');
-      if (savedProjects) {
-        setProjects(JSON.parse(savedProjects));
-      } else {
-        setProjects(defaultProjects);
+    async function fetchProjects() {
+      try {
+        // Try to fetch from Supabase first
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*');
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data.length > 0) {
+          // Transform data if needed (video_url -> videoUrl)
+          const transformedData = data.map(project => ({
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            tools: Array.isArray(project.tools) ? project.tools : [],
+            category: project.category,
+            longDescription: project.long_description,
+            images: project.images || [],
+            videoUrl: project.video_url
+          }));
+          
+          setProjects(transformedData);
+        } else {
+          // Fall back to localStorage
+          const savedProjects = localStorage.getItem('projects');
+          if (savedProjects) {
+            setProjects(JSON.parse(savedProjects));
+          } else {
+            setProjects(defaultProjects);
+            localStorage.setItem('projects', JSON.stringify(defaultProjects));
+          }
+        }
+      } catch (error) {
+        console.error("Error loading projects:", error);
+        
+        // Fallback to localStorage
         try {
-          localStorage.setItem('projects', JSON.stringify(defaultProjects));
-        } catch (error) {
-          console.error("Failed to save default projects to localStorage:", error);
-          toast.error("Unable to save project data to browser storage");
+          const savedProjects = localStorage.getItem('projects');
+          if (savedProjects) {
+            setProjects(JSON.parse(savedProjects));
+          } else {
+            setProjects(defaultProjects);
+            localStorage.setItem('projects', JSON.stringify(defaultProjects));
+          }
+        } catch (e) {
+          setProjects(defaultProjects);
         }
       }
-    } catch (error) {
-      console.error("Error loading projects:", error);
-      setProjects(defaultProjects);
     }
+    
+    fetchProjects();
   }, []);
 
   return (
