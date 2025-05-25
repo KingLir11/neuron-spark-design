@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 
 interface ProjectType {
@@ -26,6 +27,7 @@ const Projects: React.FC = () => {
       description: "Automated workflow for applying AI-generated artistic styles to product photography.",
       tools: ["Midjourney", "Make.com", "Photoshop API"],
       category: "Image Generation",
+      longDescription: "This comprehensive pipeline combines the power of Midjourney's artistic style generation with automated workflows to transform product photography. The system can process batches of images, apply consistent styling, and deliver professional results at scale.",
       images: ["https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"]
     },
     {
@@ -34,6 +36,7 @@ const Projects: React.FC = () => {
       description: "AI-powered workflow that turns blog posts into video snippets, social posts, and email newsletters.",
       tools: ["GPT-4", "Runway", "DALL·E 3"],
       category: "Automation",
+      longDescription: "A sophisticated content multiplication system that takes a single blog post and automatically generates various content formats. The system creates video scripts, social media posts, email newsletters, and visual assets, maintaining brand consistency across all outputs.",
       images: ["https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"]
     },
     {
@@ -41,7 +44,8 @@ const Projects: React.FC = () => {
       title: "Concept Art Generator",
       description: "Custom prompt system for generating consistent character designs across multiple AI platforms.",
       tools: ["Prompt Engineering", "Midjourney", "Stable Diffusion"],
-      category: "Prompt Engineering"
+      category: "Prompt Engineering",
+      longDescription: "Advanced prompt engineering system designed for creating consistent character artwork across different AI platforms. Features include character consistency protocols, style transfer techniques, and batch generation workflows for game development and creative projects."
     },
     {
       id: 4,
@@ -49,6 +53,7 @@ const Projects: React.FC = () => {
       description: "Script-to-video pipeline that creates engaging educational content with minimal human intervention.",
       tools: ["GPT-4", "Pika", "ElevenLabs"],
       category: "Video Creation",
+      longDescription: "End-to-end video production pipeline that transforms written content into polished explainer videos. The system handles script optimization, voice generation, visual creation, and final editing to produce professional educational content at scale.",
       images: ["https://images.unsplash.com/photo-1461749280684-dccba630e2f6"]
     },
     {
@@ -57,6 +62,7 @@ const Projects: React.FC = () => {
       description: "System that generates cohesive brand assets including logos, color schemes, and marketing materials.",
       tools: ["DALL·E 3", "Photoshop", "Make.com"],
       category: "Image Generation",
+      longDescription: "Comprehensive brand identity generation system that creates consistent visual assets across all brand touchpoints. From logo variations to marketing materials, this system ensures brand coherence while enabling rapid iteration and customization.",
       images: ["https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"]
     },
     {
@@ -65,6 +71,7 @@ const Projects: React.FC = () => {
       description: "Automation that transforms complex data into clear, compelling visual stories.",
       tools: ["GPT-4", "Midjourney", "Python"],
       category: "Automation",
+      longDescription: "Advanced data visualization system that automatically analyzes complex datasets and generates compelling visual narratives. The system identifies key insights, creates appropriate charts and infographics, and produces presentation-ready materials.",
       images: ["https://images.unsplash.com/photo-1518770660439-4636190af475"]
     }
   ];
@@ -110,8 +117,9 @@ const Projects: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.map((project, index) => (
-              <div 
+              <Link 
                 key={index}
+                to={`/project/${project.id}`}
                 className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
               >
                 <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
@@ -151,7 +159,7 @@ const Projects: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
