@@ -118,7 +118,7 @@ const ProjectDetailPage: React.FC = () => {
         setLocalProjects(JSON.parse(savedProjects));
       } else {
         setLocalProjects(defaultProjects);
-        safelyStoreData('projects', defaultProjects);
+        localStorage.setItem('projects', JSON.stringify(defaultProjects));
       }
     } catch (error) {
       console.error("Error loading projects:", error);
@@ -192,24 +192,7 @@ const ProjectDetailPage: React.FC = () => {
         setProject(updatedProject);
         setLocalProjects(updatedProjects);
         
-        // Save to Supabase
-        const { error } = await supabase.from('projects').upsert({
-          id: updatedProject.id,
-          title: updatedProject.title,
-          description: updatedProject.description,
-          tools: updatedProject.tools,
-          category: updatedProject.category,
-          long_description: updatedProject.longDescription,
-          images: updatedProject.images || [],
-          video_url: updatedProject.videoUrl
-        });
-        
-        if (error) {
-          console.error('Error saving to Supabase:', error);
-          throw error;
-        }
-        
-        // Also save to localStorage as a backup
+        // Save to localStorage
         const storableProjects = getStorableCopy(updatedProjects);
         const saved = safelyStoreData('projects', storableProjects);
         
@@ -243,22 +226,12 @@ const ProjectDetailPage: React.FC = () => {
       setLocalProjects(updatedProjects);
       
       try {
-        // Save to Supabase
-        const { error } = await supabase.from('projects').update({
-          tools: editTools
-        }).eq('id', project.id);
-        
-        if (error) {
-          console.error('Error saving tools to Supabase:', error);
-          throw error;
-        }
-        
-        // Also save to localStorage as a backup
-        const saved = safelyStoreData('projects', updatedProjects);
+        // Save to localStorage
+        const saved = localStorage.setItem('projects', JSON.stringify(updatedProjects));
         toast.success("Tools updated successfully");
       } catch (error) {
         console.error("Error saving tools:", error);
-        toast.warning("Changes might not be saved to the database");
+        toast.warning("Changes might not be saved");
       }
     }
   };
@@ -355,10 +328,10 @@ const ProjectDetailPage: React.FC = () => {
       <div className="min-h-screen bg-dark-200 text-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Project not found</h1>
-          <Link to="/projects">
+          <Link to="/">
             <Button>
               <ArrowLeft className="mr-2" />
-              Back to Projects
+              Back to Home
             </Button>
           </Link>
         </div>
@@ -372,9 +345,9 @@ const ProjectDetailPage: React.FC = () => {
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <Link to="/projects" className="inline-flex items-center text-primary hover:underline mb-6">
+            <Link to="/" className="inline-flex items-center text-primary hover:underline mb-6">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to all projects
+              Back to home
             </Link>
             
             <div className="flex justify-between items-start">
