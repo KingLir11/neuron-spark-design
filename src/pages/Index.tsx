@@ -13,9 +13,9 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-dark-200 text-white">
       <Navbar />
       <Hero />
-      <About />
       <Services />
       <Projects />
+      <About />
       <Contact />
       <Footer />
     </div>

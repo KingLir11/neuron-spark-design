@@ -1,9 +1,7 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { toast } from '@/components/ui/sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectType {
   id: number;
@@ -11,9 +9,9 @@ interface ProjectType {
   description: string;
   tools: string[];
   category: string;
-  longDescription?: string; // Changed from long_description to match ProjectType interface
+  longDescription?: string;
   images?: string[];
-  videoUrl?: string; // Changed from video_url to match ProjectType interface
+  videoUrl?: string;
 }
 
 const Projects: React.FC = () => {
@@ -71,100 +69,28 @@ const Projects: React.FC = () => {
     }
   ];
 
-  // Load projects from Supabase with fallback to localStorage
+  // Load projects from localStorage or use defaults
   useEffect(() => {
-    async function fetchProjects() {
+    async function loadProjects() {
       try {
         setLoading(true);
-        // Try to fetch from Supabase first
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*');
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data && data.length > 0) {
-          // Transform data if needed (video_url -> videoUrl)
-          const transformedData = data.map(project => ({
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            tools: Array.isArray(project.tools) ? project.tools : [],
-            category: project.category,
-            longDescription: project.long_description,
-            images: project.images || [],
-            videoUrl: project.video_url
-          }));
-          
-          setProjects(transformedData);
-          console.log('Projects loaded from Supabase:', transformedData);
+        const savedProjects = localStorage.getItem('projects');
+        if (savedProjects) {
+          setProjects(JSON.parse(savedProjects));
         } else {
-          // No data in Supabase yet, try localStorage
-          const savedProjects = localStorage.getItem('projects');
-          if (savedProjects) {
-            const parsedProjects = JSON.parse(savedProjects);
-            setProjects(parsedProjects);
-            
-            // Since we have projects in localStorage but not Supabase,
-            // initialize Supabase with these projects
-            parsedProjects.forEach(async (project: ProjectType) => {
-              await supabase.from('projects').upsert({
-                id: project.id,
-                title: project.title,
-                description: project.description,
-                tools: project.tools,
-                category: project.category,
-                long_description: project.longDescription,
-                images: project.images || [],
-                video_url: project.videoUrl
-              });
-            });
-            
-            console.log('Projects loaded from localStorage and synced to Supabase');
-          } else {
-            // No projects in localStorage either, use defaults
-            setProjects(defaultProjects);
-            
-            // Initialize Supabase with default projects
-            defaultProjects.forEach(async (project) => {
-              await supabase.from('projects').upsert({
-                id: project.id,
-                title: project.title,
-                description: project.description,
-                tools: project.tools,
-                category: project.category,
-                long_description: project.longDescription,
-                images: project.images || [],
-                video_url: project.videoUrl
-              });
-            });
-            
-            console.log('Default projects loaded and synced to Supabase');
-          }
+          setProjects(defaultProjects);
+          localStorage.setItem('projects', JSON.stringify(defaultProjects));
         }
       } catch (error) {
         console.error("Error loading projects:", error);
         toast.error("Failed to load projects");
-        
-        // Fallback to localStorage or default
-        try {
-          const savedProjects = localStorage.getItem('projects');
-          if (savedProjects) {
-            setProjects(JSON.parse(savedProjects));
-          } else {
-            setProjects(defaultProjects);
-          }
-        } catch (e) {
-          setProjects(defaultProjects);
-        }
+        setProjects(defaultProjects);
       } finally {
         setLoading(false);
       }
     }
     
-    fetchProjects();
+    loadProjects();
   }, []);
 
   return (
@@ -184,8 +110,7 @@ const Projects: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.map((project, index) => (
-              <Link 
-                to={`/project/${project.id}`} 
+              <div 
                 key={index}
                 className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
               >
@@ -226,7 +151,7 @@ const Projects: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
