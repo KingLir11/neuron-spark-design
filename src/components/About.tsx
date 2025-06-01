@@ -1,8 +1,6 @@
 import React from 'react';
-
 const About: React.FC = () => {
-  return (
-    <section id="about" className="py-20 bg-dark-100">
+  return <section id="about" className="py-20 bg-dark-100">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">
@@ -11,10 +9,7 @@ const About: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <p className="text-gray-300 leading-relaxed">
-                I'm an AI specialist focused on turning emerging technologies into practical, powerful solutions. 
-                I entered the world of AI head-on, driven by curiosity and a hands-on approach to real-world problem solving.
-              </p>
+              <p className="text-gray-300 leading-relaxed">Hi! My name is Liran, I'm an AI specialist focused on turning emerging technologies into practical, powerful solutions. I entered the world of AI head-on, driven by curiosity and a hands-on approach to real-world problem solving.</p>
               
               <p className="text-gray-300 leading-relaxed">
                 Today, I bridge the gap between cutting-edge AI capabilities and real-world applications. 
@@ -43,18 +38,12 @@ const About: React.FC = () => {
             
             <div className="relative">
               <div className="aspect-[1/1] relative rounded-lg overflow-hidden">
-                <img
-                  src="/lovable-uploads/d7a59393-6000-4bc0-80f3-f352306e9523.png"
-                  alt="AI Expert Profile"
-                  className="w-full h-full object-cover rounded-lg"
-                />
+                <img src="/lovable-uploads/d7a59393-6000-4bc0-80f3-f352306e9523.png" alt="AI Expert Profile" className="w-full h-full object-cover rounded-lg" />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default About;
