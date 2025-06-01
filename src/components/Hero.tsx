@@ -2,13 +2,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import TypingEffect from './TypingEffect';
-import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
-  const navigate = useNavigate();
-
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToProjects = () => {
+    document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -41,7 +42,7 @@ const Hero: React.FC = () => {
                 variant="outline"
                 size="lg" 
                 className="border-gray-600 text-white hover:bg-gray-800 rounded-md"
-                onClick={() => navigate('/projects')}
+                onClick={scrollToProjects}
               >
                 View my work
               </Button>

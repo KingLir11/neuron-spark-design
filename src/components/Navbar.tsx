@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
           {/* LinkedIn Link */}
           <div className="hidden md:flex items-center">
             <a 
-              href="https://linkedin.com/in/your-profile" 
+              href="https://www.linkedin.com/in/liran-sapozhnikov-b05577358/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-300 hover:text-primary transition-colors"
@@ -124,7 +124,7 @@ const Navbar: React.FC = () => {
                 </button>
               ))}
               <a 
-                href="https://linkedin.com/in/your-profile" 
+                href="https://www.linkedin.com/in/liran-sapozhnikov-b05577358/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-primary transition-colors flex items-center"
