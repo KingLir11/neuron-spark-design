@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -49,7 +48,7 @@ const Projects: React.FC = () => {
   }, []);
 
   return (
-    <section id="projects" className="py-20 bg-dark-100">
+    <section id="projects" className="py-20 bg-dark-100 scroll-mt-20">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white text-center">
           Featured <span className="text-primary glow">Projects</span>
@@ -59,8 +58,8 @@ const Projects: React.FC = () => {
         </p>
         
         {loading ? (
-          <div className="flex justify-center">
-            <div className="animate-pulse text-primary">Loading projects...</div>
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="animate-pulse text-primary text-lg">Loading projects...</div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

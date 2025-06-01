@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
@@ -25,12 +24,17 @@ const Navbar: React.FC = () => {
       window.location.href = '/' + href; // Navigate to home page with hash
       return;
     }
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth'
-      });
-    }
+    
+    // Add a small delay to ensure the element is loaded
+    setTimeout(() => {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
   };
 
   const navLinks = [
