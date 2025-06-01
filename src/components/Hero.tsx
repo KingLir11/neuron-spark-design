@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import TypingEffect from './TypingEffect';
@@ -20,7 +19,7 @@ const Hero: React.FC = () => {
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
                 <TypingEffect 
-                  text="I don't use AI. I orchestrate it." 
+                  text="Creating with purpose. Enhancing with AI." 
                   speed={70} 
                   className="inline-block"
                 />
