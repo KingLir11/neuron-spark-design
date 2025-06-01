@@ -1,37 +1,28 @@
-
 import React from 'react';
 import { Code, Zap, Image, Video } from 'lucide-react';
-
 const Services: React.FC = () => {
-  const services = [
-    {
-      icon: <Code className="w-8 h-8" />,
-      title: "Prompt Engineering",
-      description: "Expert crafting of text, image and multimodal prompts to achieve precise, consistent results from AI systems.",
-      color: "bg-blue-500"
-    },
-    {
-      icon: <Zap className="w-8 h-8" />,
-      title: "Automation", 
-      description: "Build powerful workflows with Make.com, APIs, and custom GPTs to automate repetitive tasks and processes.",
-      color: "bg-purple-500"
-    },
-    {
-      icon: <Image className="w-8 h-8" />,
-      title: "AI Image Generation",
-      description: "Create stunning visuals with Midjourney, ChatGPT and other leading image generators that push creative boundaries.",
-      color: "bg-green-500"
-    },
-    {
-      icon: <Video className="w-8 h-8" />,
-      title: "AI Video Creation",
-      description: "Develop dynamic video content with Runway, Pika, and script-to-video pipelines that bring ideas to life.",
-      color: "bg-red-500"
-    }
-  ];
-
-  return (
-    <section id="services" className="py-20 bg-dark-200">
+  const services = [{
+    icon: <Code className="w-8 h-8" />,
+    title: "Prompt Engineering",
+    description: "Expert crafting of text, image and multimodal prompts to achieve precise, consistent results from AI systems.",
+    color: "bg-blue-500"
+  }, {
+    icon: <Zap className="w-8 h-8" />,
+    title: "Automation",
+    description: "Build powerful workflows with Make.com, APIs, and custom GPTs to automate repetitive tasks and processes.",
+    color: "bg-purple-500"
+  }, {
+    icon: <Image className="w-8 h-8" />,
+    title: "AI Image Generation",
+    description: "Create stunning visuals with Midjourney, ChatGPT and other leading image generators that push creative boundaries.",
+    color: "bg-green-500"
+  }, {
+    icon: <Video className="w-8 h-8" />,
+    title: "AI Video Creation",
+    description: "Develop dynamic video content with Runway, Pika, and script-to-video pipelines that bring ideas to life.",
+    color: "bg-red-500"
+  }];
+  return <section id="services" className="bg-dark-200 py-[60px]">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white text-center">
           What can <span className="text-primary glow">I do for you</span>
@@ -41,8 +32,7 @@ const Services: React.FC = () => {
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {services.map((service, index) => (
-            <div key={index} className="bg-dark-100 p-6 rounded-lg group hover:glow-box transition-all duration-300">
+          {services.map((service, index) => <div key={index} className="bg-dark-100 p-6 rounded-lg group hover:glow-box transition-all duration-300">
               <div className={`${service.color} p-3 rounded-lg inline-block mb-4 group-hover:scale-110 transition-transform duration-300`}>
                 <div className="text-white">
                   {service.icon}
@@ -54,12 +44,9 @@ const Services: React.FC = () => {
               <p className="text-gray-300">
                 {service.description}
               </p>
-            </div>
-          ))}
+            </div>)}
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Services;
