@@ -3,95 +3,43 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProjectType {
-  id: number;
+  id: string;
   title: string;
   description: string;
   tools: string[];
   category: string;
-  longDescription?: string;
+  long_description?: string;
   images?: string[];
-  videoUrl?: string;
+  video_url?: string;
 }
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  
-  // Default projects data - used as fallback
-  const defaultProjects: ProjectType[] = [
-    {
-      id: 1,
-      title: "Neural Style Transfer Pipeline",
-      description: "Automated workflow for applying AI-generated artistic styles to product photography.",
-      tools: ["Midjourney", "Make.com", "Photoshop API"],
-      category: "Image Generation",
-      longDescription: "This comprehensive pipeline combines the power of Midjourney's artistic style generation with automated workflows to transform product photography. The system can process batches of images, apply consistent styling, and deliver professional results at scale.",
-      images: ["https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"]
-    },
-    {
-      id: 2,
-      title: "Content Amplification System",
-      description: "AI-powered workflow that turns blog posts into video snippets, social posts, and email newsletters.",
-      tools: ["GPT-4", "Runway", "DALL·E 3"],
-      category: "Automation",
-      longDescription: "A sophisticated content multiplication system that takes a single blog post and automatically generates various content formats. The system creates video scripts, social media posts, email newsletters, and visual assets, maintaining brand consistency across all outputs.",
-      images: ["https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"]
-    },
-    {
-      id: 3,
-      title: "Concept Art Generator",
-      description: "Custom prompt system for generating consistent character designs across multiple AI platforms.",
-      tools: ["Prompt Engineering", "Midjourney", "Stable Diffusion"],
-      category: "Prompt Engineering",
-      longDescription: "Advanced prompt engineering system designed for creating consistent character artwork across different AI platforms. Features include character consistency protocols, style transfer techniques, and batch generation workflows for game development and creative projects."
-    },
-    {
-      id: 4,
-      title: "Explainer Video Factory",
-      description: "Script-to-video pipeline that creates engaging educational content with minimal human intervention.",
-      tools: ["GPT-4", "Pika", "ElevenLabs"],
-      category: "Video Creation",
-      longDescription: "End-to-end video production pipeline that transforms written content into polished explainer videos. The system handles script optimization, voice generation, visual creation, and final editing to produce professional educational content at scale.",
-      images: ["https://images.unsplash.com/photo-1461749280684-dccba630e2f6"]
-    },
-    {
-      id: 5,
-      title: "Visual Identity Creator",
-      description: "System that generates cohesive brand assets including logos, color schemes, and marketing materials.",
-      tools: ["DALL·E 3", "Photoshop", "Make.com"],
-      category: "Image Generation",
-      longDescription: "Comprehensive brand identity generation system that creates consistent visual assets across all brand touchpoints. From logo variations to marketing materials, this system ensures brand coherence while enabling rapid iteration and customization.",
-      images: ["https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"]
-    },
-    {
-      id: 6,
-      title: "Data Insight Visualizer",
-      description: "Automation that transforms complex data into clear, compelling visual stories.",
-      tools: ["GPT-4", "Midjourney", "Python"],
-      category: "Automation",
-      longDescription: "Advanced data visualization system that automatically analyzes complex datasets and generates compelling visual narratives. The system identifies key insights, creates appropriate charts and infographics, and produces presentation-ready materials.",
-      images: ["https://images.unsplash.com/photo-1518770660439-4636190af475"]
-    }
-  ];
 
-  // Load projects from localStorage or use defaults
+  // Load projects from Supabase
   useEffect(() => {
     async function loadProjects() {
       try {
         setLoading(true);
-        const savedProjects = localStorage.getItem('projects');
-        if (savedProjects) {
-          setProjects(JSON.parse(savedProjects));
-        } else {
-          setProjects(defaultProjects);
-          localStorage.setItem('projects', JSON.stringify(defaultProjects));
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error loading projects:', error);
+          toast.error('Failed to load projects');
+          return;
         }
+        
+        setProjects(data || []);
       } catch (error) {
-        console.error("Error loading projects:", error);
-        toast.error("Failed to load projects");
-        setProjects(defaultProjects);
+        console.error('Error loading projects:', error);
+        toast.error('Failed to load projects');
       } finally {
         setLoading(false);
       }
@@ -116,9 +64,9 @@ const Projects: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project, index) => (
+            {projects.map((project) => (
               <Link 
-                key={index}
+                key={project.id}
                 to={`/project/${project.id}`}
                 className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
               >
@@ -149,7 +97,7 @@ const Projects: React.FC = () => {
                   </p>
                   
                   <div className="flex flex-wrap gap-2">
-                    {project.tools.map((tool, idx) => (
+                    {project.tools && project.tools.map((tool, idx) => (
                       <span 
                         key={idx}
                         className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"

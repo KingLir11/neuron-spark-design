@@ -1,58 +1,63 @@
 
 import React from 'react';
-import { Code, Zap, Image, Video } from 'lucide-react';
+import { Bot, Palette, Zap, Video, Brain, Database } from 'lucide-react';
 
 const Services: React.FC = () => {
   const services = [
     {
+      icon: <Bot className="w-8 h-8" />,
+      title: "AI Automation",
+      description: "Custom AI workflows that streamline your business processes and boost productivity through intelligent automation."
+    },
+    {
+      icon: <Palette className="w-8 h-8" />,
+      title: "Creative AI",
+      description: "Leverage AI tools like Midjourney and DALL·E to create stunning visuals, artwork, and design assets."
+    },
+    {
+      icon: <Video className="w-8 h-8" />,
+      title: "Video Generation",
+      description: "AI-powered video creation pipelines that transform ideas into engaging visual content at scale."
+    },
+    {
+      icon: <Brain className="w-8 h-8" />,
       title: "Prompt Engineering",
-      description: "Expert crafting of text, image and multimodal prompts to achieve precise, consistent results from AI systems.",
-      icon: Code,
-      color: "from-blue-500 to-cyan-400"
+      description: "Expertly crafted prompts that unlock the full potential of AI models for your specific use cases."
     },
     {
-      title: "Automation",
-      description: "Build powerful workflows with Make.com, APIs, and custom GPTs to automate repetitive tasks and processes.",
-      icon: Zap,
-      color: "from-purple-500 to-indigo-400"
+      icon: <Zap className="w-8 h-8" />,
+      title: "Workflow Integration",
+      description: "Seamlessly integrate AI capabilities into your existing workflows with tools like Make.com and Zapier."
     },
     {
-      title: "AI Image Generation",
-      description: "Create stunning visuals with Midjourney, ChatGPT and other leading image generators that push creative boundaries.",
-      icon: Image,
-      color: "from-green-500 to-emerald-400"
-    },
-    {
-      title: "AI Video Creation",
-      description: "Develop dynamic video content with Runway, Pika, and script-to-video pipelines that bring ideas to life.",
-      icon: Video,
-      color: "from-red-500 to-pink-400"
+      icon: <Database className="w-8 h-8" />,
+      title: "Data Processing",
+      description: "Transform and analyze your data using AI to extract insights and automate decision-making processes."
     }
   ];
 
   return (
-    <section id="services" className="py-20">
+    <section id="services" className="py-20 bg-dark-200">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white text-center">
-          What I <span className="text-primary glow">Do</span>
+          What can <span className="text-primary glow">I do for you</span>
         </h2>
         <p className="text-gray-300 text-center max-w-2xl mx-auto mb-16">
-          I specialize in four key areas, combining technical expertise with creative solutions
-          to help you harness the full potential of AI technology.
+          I specialize in harnessing the power of AI to solve real-world problems and create innovative solutions.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
-            <div 
-              key={index}
-              className="bg-dark-100 rounded-lg p-6 transition-all duration-300 hover:translate-y-[-5px] hover:glow-box"
-            >
-              <div className={`w-12 h-12 rounded-lg mb-5 flex items-center justify-center bg-gradient-to-r ${service.color}`}>
-                <service.icon className="w-6 h-6 text-white" />
+            <div key={index} className="bg-dark-100 p-6 rounded-lg group hover:glow-box transition-all duration-300">
+              <div className="text-primary mb-4 group-hover:scale-110 transition-transform duration-300">
+                {service.icon}
               </div>
-              
-              <h3 className="text-xl font-semibold text-white mb-3">{service.title}</h3>
-              <p className="text-gray-300">{service.description}</p>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                {service.title}
+              </h3>
+              <p className="text-gray-300">
+                {service.description}
+              </p>
             </div>
           ))}
         </div>

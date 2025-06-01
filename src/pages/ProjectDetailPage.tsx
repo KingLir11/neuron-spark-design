@@ -1,40 +1,31 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Edit, Image, Video, Plus, X, Upload, FileImage, FileVideo } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Image, Video, Plus, X, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { 
-  safelyStoreData, 
-  processImageForStorage, 
-  processVideoForStorage, 
-  getStorableCopy,
-  uploadImageToStorage,
-  uploadVideoToStorage 
-} from '@/utils/storageUtils';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define project type for TypeScript
 interface Project {
-  id: number;
+  id: string;
   title: string;
   description: string;
   tools: string[];
   category: string;
-  longDescription?: string;
+  long_description?: string;
   images?: string[];
-  videoUrl?: string;
+  video_url?: string;
 }
 
 const ProjectDetailPage: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+  const { id: projectId } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editLongDescription, setEditLongDescription] = useState('');
@@ -44,195 +35,118 @@ const ProjectDetailPage: React.FC = () => {
   const [editCategory, setEditCategory] = useState('');
   const [newTool, setNewTool] = useState('');
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
-  const [localProjects, setLocalProjects] = useState<Project[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Refs for file inputs
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Default project data - same but exported to a utility if needed in the future
-  const defaultProjects: Project[] = [
-    {
-      id: 1,
-      title: "Neural Style Transfer Pipeline",
-      description: "Automated workflow for applying AI-generated artistic styles to product photography.",
-      tools: ["Midjourney", "Make.com", "Photoshop API"],
-      category: "Image Generation",
-      longDescription: "This project implements a fully automated workflow that takes standard product photography and applies various artistic styles using neural networks. The system integrates with e-commerce platforms to automatically process new product uploads, apply selected style transfers, and deploy the stylized images to product listings.",
-      images: ["https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"]
-    },
-    {
-      id: 2,
-      title: "Content Amplification System",
-      description: "AI-powered workflow that turns blog posts into video snippets, social posts, and email newsletters.",
-      tools: ["GPT-4", "Runway", "DALL·E 3"],
-      category: "Automation",
-      longDescription: "This system takes a single blog post as input and automatically generates a suite of derivative content including short video clips, social media posts tailored for different platforms, and email newsletter content. It uses GPT-4 for text transformation and DALL·E for generating accompanying visuals.",
-      images: ["https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"]
-    },
-    {
-      id: 3,
-      title: "Concept Art Generator",
-      description: "Custom prompt system for generating consistent character designs across multiple AI platforms.",
-      tools: ["Prompt Engineering", "Midjourney", "Stable Diffusion"],
-      category: "Prompt Engineering",
-      longDescription: "A sophisticated prompt engineering system that enables consistent character design generation across multiple AI art platforms. The tool maintains style consistency while allowing for variations in pose, expression, and scenario - perfect for concept artists and game developers.",
-      videoUrl: "https://example.com/concept-art-demo.mp4"
-    },
-    {
-      id: 4,
-      title: "Explainer Video Factory",
-      description: "Script-to-video pipeline that creates engaging educational content with minimal human intervention.",
-      tools: ["GPT-4", "Pika", "ElevenLabs"],
-      category: "Video Creation",
-      longDescription: "This automated pipeline transforms text scripts into fully rendered explainer videos. It breaks down scripts into scenes, generates appropriate visuals, adds voice narration using ElevenLabs, and composes everything into a cohesive video using Pika.",
-      images: ["https://images.unsplash.com/photo-1461749280684-dccba630e2f6"]
-    },
-    {
-      id: 5,
-      title: "Visual Identity Creator",
-      description: "System that generates cohesive brand assets including logos, color schemes, and marketing materials.",
-      tools: ["DALL·E 3", "Photoshop", "Make.com"],
-      category: "Image Generation",
-      longDescription: "A brand identity generation system that creates complete visual brand packages. From a simple text description of the brand values and target audience, it outputs logos, color palettes, typography recommendations, and example marketing materials.",
-      images: ["https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"]
-    },
-    {
-      id: 6,
-      title: "Data Insight Visualizer",
-      description: "Automation that transforms complex data into clear, compelling visual stories.",
-      tools: ["GPT-4", "Midjourney", "Python"],
-      category: "Automation",
-      longDescription: "This tool takes raw data as input, uses Python and GPT-4 to analyze trends and extract insights, then automatically creates visual representations optimized for storytelling and presentation. Ideal for data analysts and business intelligence teams.",
-      images: ["https://images.unsplash.com/photo-1518770660439-4636190af475"]
-    }
-  ];
-
-  // Load projects from localStorage or use default
+  // Load project from Supabase
   useEffect(() => {
-    try {
-      const savedProjects = localStorage.getItem('projects');
-      if (savedProjects) {
-        setLocalProjects(JSON.parse(savedProjects));
-      } else {
-        setLocalProjects(defaultProjects);
-        localStorage.setItem('projects', JSON.stringify(defaultProjects));
-      }
-    } catch (error) {
-      console.error("Error loading projects:", error);
-      setLocalProjects(defaultProjects);
-    }
-  }, []);
-
-  // Find project when component mounts or projectId changes
-  useEffect(() => {
-    if (projectId && localProjects.length > 0) {
-      const foundProject = localProjects.find(p => p.id === parseInt(projectId));
-      if (foundProject) {
-        setProject(foundProject);
-        setEditTitle(foundProject.title);
-        setEditDescription(foundProject.description);
-        setEditLongDescription(foundProject.longDescription || '');
-        setEditImages(foundProject.images || []);
-        setEditVideoUrl(foundProject.videoUrl || '');
-        setEditTools([...foundProject.tools]);
-        setEditCategory(foundProject.category || '');
-        setMediaType(foundProject.images && foundProject.images.length > 0 ? 'image' : 'video');
-      }
-    }
-  }, [projectId, localProjects]);
-
-  const handleSaveChanges = async () => {
-    if (project) {
-      setIsLoading(true);
-      toast.info("Saving changes and processing media...");
+    async function loadProject() {
+      if (!projectId) return;
       
       try {
-        const updatedProject = {
-          ...project,
-          title: editTitle,
-          description: editDescription,
-          longDescription: editLongDescription,
-          category: editCategory,
-        };
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('id', projectId)
+          .single();
         
-        // Process media based on mediaType
-        if (mediaType === 'image') {
-          // Process all images that are data URLs
-          const processedImages = await Promise.all(
-            editImages.map(async (img) => {
-              if (img.startsWith('data:')) {
-                return await processImageForStorage(img);
-              }
-              return img;
-            })
-          );
-          
-          // Filter out any failed uploads
-          updatedProject.images = processedImages.filter(url => url);
-          updatedProject.videoUrl = undefined;
-        } else if (mediaType === 'video') {
-          // Process video if it's a data URL
-          if (editVideoUrl.startsWith('data:')) {
-            const processedVideoUrl = await processVideoForStorage(editVideoUrl);
-            updatedProject.videoUrl = processedVideoUrl;
-          } else {
-            updatedProject.videoUrl = editVideoUrl;
-          }
-          updatedProject.images = [];
+        if (error) {
+          console.error('Error loading project:', error);
+          toast.error('Failed to load project');
+          return;
         }
-
-        // Update project in state 
-        const updatedProjects = localProjects.map(p => 
-          p.id === project.id ? updatedProject : p
-        );
         
-        setProject(updatedProject);
-        setLocalProjects(updatedProjects);
-        
-        // Save to localStorage
-        const storableProjects = getStorableCopy(updatedProjects);
-        const saved = safelyStoreData('projects', storableProjects);
-        
-        if (saved) {
-          toast.success("Project updated successfully");
-        } else {
-          toast.warning("Project updated but there might be issues with local storage");
+        if (data) {
+          setProject(data);
+          setEditTitle(data.title);
+          setEditDescription(data.description || '');
+          setEditLongDescription(data.long_description || '');
+          setEditImages(data.images || []);
+          setEditVideoUrl(data.video_url || '');
+          setEditTools(data.tools || []);
+          setEditCategory(data.category || '');
+          setMediaType(data.images && data.images.length > 0 ? 'image' : 'video');
         }
       } catch (error) {
-        console.error("Error saving project:", error);
-        toast.error("Failed to update project");
+        console.error('Error loading project:', error);
+        toast.error('Failed to load project');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
+    }
+    
+    loadProject();
+  }, [projectId]);
+
+  const uploadFileToStorage = async (file: File, type: 'image' | 'video'): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${type}s/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('project-media')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast.error(`Failed to upload ${type}`);
+        return null;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('project-media')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
+      toast.error(`Failed to upload ${type}`);
+      return null;
     }
   };
 
-  const handleSaveTools = async () => {
-    if (project) {
-      const updatedProject = {
-        ...project,
-        tools: [...editTools]
+  const handleSaveChanges = async () => {
+    if (!project) return;
+
+    setIsLoading(true);
+    toast.info("Saving changes...");
+    
+    try {
+      const updatedData = {
+        title: editTitle,
+        description: editDescription,
+        long_description: editLongDescription,
+        category: editCategory,
+        tools: editTools,
+        images: mediaType === 'image' ? editImages : [],
+        video_url: mediaType === 'video' ? editVideoUrl : null,
+        updated_at: new Date().toISOString()
       };
 
-      // Update project in state
-      const updatedProjects = localProjects.map(p => 
-        p.id === project.id ? updatedProject : p
-      );
-      
-      setProject(updatedProject);
-      setLocalProjects(updatedProjects);
-      
-      try {
-        // Save to localStorage
-        const saved = localStorage.setItem('projects', JSON.stringify(updatedProjects));
-        toast.success("Tools updated successfully");
-      } catch (error) {
-        console.error("Error saving tools:", error);
-        toast.warning("Changes might not be saved");
+      const { error } = await supabase
+        .from('projects')
+        .update(updatedData)
+        .eq('id', project.id);
+
+      if (error) {
+        console.error('Error updating project:', error);
+        toast.error('Failed to update project');
+        return;
       }
+
+      // Update local state
+      setProject({ ...project, ...updatedData });
+      toast.success("Project updated successfully");
+    } catch (error) {
+      console.error("Error saving project:", error);
+      toast.error("Failed to update project");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -249,7 +163,6 @@ const ProjectDetailPage: React.FC = () => {
     setEditTools(updatedTools);
   };
 
-  // Handle image URL addition
   const handleAddImageUrl = () => {
     if (newImageUrl.trim()) {
       setEditImages([...editImages, newImageUrl.trim()]);
@@ -257,71 +170,69 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
-  // Handle image removal
   const handleRemoveImage = (index: number) => {
     const updatedImages = [...editImages];
     updatedImages.splice(index, 1);
     setEditImages(updatedImages);
   };
 
-  // Handle image file upload with increased size constraints
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Allow multiple files, now that we're using Supabase storage
       const selectedFiles = Array.from(files);
       
-      selectedFiles.forEach(file => {
-        // Increased file size limit to 10MB
+      for (const file of selectedFiles) {
         if (file.size > 10 * 1024 * 1024) {
           toast.warning(`File ${file.name} is too large (max 10MB). Please choose a smaller file.`);
-          return;
+          continue;
         }
         
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target && event.target.result) {
-            const result = event.target.result as string;
-            setEditImages(prev => [...prev, result]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+        toast.info(`Uploading ${file.name}...`);
+        const uploadedUrl = await uploadFileToStorage(file, 'image');
+        if (uploadedUrl) {
+          setEditImages(prev => [...prev, uploadedUrl]);
+          toast.success(`${file.name} uploaded successfully`);
+        }
+      }
     }
     
-    // Reset the input value to allow selecting the same file again
     if (e.target) {
       e.target.value = '';
     }
   };
 
-  // Handle video file upload with increased size constraints
-  const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      const file = files[0]; // Only take the first video
+      const file = files[0];
       
-      // Increased file size limit to 100MB
       if (file.size > 100 * 1024 * 1024) {
         toast.warning("Video file is too large (max 100MB). Please choose a smaller file.");
         return;
       }
       
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target && event.target.result) {
-          const result = event.target.result as string;
-          setEditVideoUrl(result);
-        }
-      };
-      reader.readAsDataURL(file);
+      toast.info(`Uploading ${file.name}...`);
+      const uploadedUrl = await uploadFileToStorage(file, 'video');
+      if (uploadedUrl) {
+        setEditVideoUrl(uploadedUrl);
+        toast.success(`${file.name} uploaded successfully`);
+      }
     }
     
-    // Reset the input value to allow selecting the same file again
     if (e.target) {
       e.target.value = '';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dark-200 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-pulse text-primary mb-4">Loading project...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
@@ -350,13 +261,15 @@ const ProjectDetailPage: React.FC = () => {
               Back to home
             </Link>
             
-            <div className="flex justify-between items-start">
-              <h1 className="text-4xl font-bold text-white">
-                {project.title}
-                <span className="ml-2 text-sm align-top bg-dark-100 text-gray-300 px-2 py-1 rounded">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2">
+                  {project.title}
+                </h1>
+                <span className="text-sm bg-dark-100 text-gray-300 px-3 py-1 rounded">
                   {project.category}
                 </span>
-              </h1>
+              </div>
               
               <Dialog>
                 <DialogTrigger asChild>
@@ -369,7 +282,7 @@ const ProjectDetailPage: React.FC = () => {
                   <DialogHeader>
                     <DialogTitle className="text-white">Edit Project Details</DialogTitle>
                     <DialogDescription className="text-gray-400">
-                      Make changes to your project. Media is now stored in the cloud with higher size limits.
+                      Make changes to your project. Media is stored in Supabase storage.
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -435,29 +348,25 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'image' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Project Images <span className="text-xs text-gray-400">(max size: 10MB each)</span></label>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => imageFileInputRef.current?.click()}
-                              title="Max size: 10MB per image"
-                            >
-                              <Upload className="mr-2 h-4 w-4" />
-                              Upload Image
-                            </Button>
-                            <input
-                              type="file"
-                              ref={imageFileInputRef}
-                              onChange={handleImageFileUpload}
-                              accept="image/*"
-                              style={{ display: 'none' }}
-                              multiple
-                            />
-                          </div>
+                          <label className="text-sm font-medium">Project Images</label>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => imageFileInputRef.current?.click()}
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Images
+                          </Button>
+                          <input
+                            type="file"
+                            ref={imageFileInputRef}
+                            onChange={handleImageFileUpload}
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            multiple
+                          />
                         </div>
                         
-                        {/* Image gallery */}
                         <div className="grid grid-cols-2 gap-2">
                           {editImages.map((img, index) => (
                             <div key={index} className="relative group rounded-md overflow-hidden">
@@ -465,9 +374,6 @@ const ProjectDetailPage: React.FC = () => {
                                 src={img} 
                                 alt={`Project image ${index + 1}`} 
                                 className="w-full h-32 object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+Image';
-                                }}
                               />
                               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button 
@@ -482,7 +388,6 @@ const ProjectDetailPage: React.FC = () => {
                           ))}
                         </div>
                         
-                        {/* Add image URL option */}
                         <div>
                           <label className="text-sm font-medium mb-1 block">Add Image URL</label>
                           <div className="flex gap-2">
@@ -503,12 +408,11 @@ const ProjectDetailPage: React.FC = () => {
                     {mediaType === 'video' && (
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Video <span className="text-xs text-gray-400">(max 100MB)</span></label>
+                          <label className="text-sm font-medium">Video</label>
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => videoFileInputRef.current?.click()}
-                            title="Max size: 100MB"
                           >
                             <Upload className="mr-2 h-4 w-4" />
                             Upload Video
@@ -535,7 +439,6 @@ const ProjectDetailPage: React.FC = () => {
                           </div>
                         )}
                         
-                        {/* For external video URL */}
                         <div>
                           <label className="text-sm font-medium mb-1 block">Or Enter Video URL</label>
                           <Input 
@@ -547,6 +450,43 @@ const ProjectDetailPage: React.FC = () => {
                         </div>
                       </div>
                     )}
+                    
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Tools & Technologies</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {editTools.map((tool, idx) => (
+                          <div 
+                            key={idx}
+                            className="flex items-center bg-dark-200 text-gray-300 px-2 py-1 rounded"
+                          >
+                            <span className="text-xs">{tool}</span>
+                            <button 
+                              onClick={() => handleRemoveTool(idx)}
+                              className="ml-2 text-gray-400 hover:text-gray-200"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={newTool}
+                          onChange={(e) => setNewTool(e.target.value)}
+                          placeholder="Enter tool name"
+                          className="bg-dark-200 border-gray-700 text-white"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddTool();
+                            }
+                          }}
+                        />
+                        <Button onClick={handleAddTool}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                     
                     <div className="flex justify-end gap-2">
                       <DialogClose asChild>
@@ -574,15 +514,13 @@ const ProjectDetailPage: React.FC = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              {/* About this project section - moved above images */}
               <div className="prose prose-invert max-w-none mb-8">
                 <h2 className="text-2xl font-semibold mb-4">About this project</h2>
                 <p className="text-gray-300 mb-6 text-lg">
-                  {project.longDescription || project.description}
+                  {project.long_description || project.description}
                 </p>
               </div>
               
-              {/* Vertically stacked images */}
               {project.images && project.images.length > 0 && (
                 <div className="space-y-6 mb-8">
                   {project.images.map((img, index) => (
@@ -598,13 +536,13 @@ const ProjectDetailPage: React.FC = () => {
                 </div>
               )}
               
-              {project.videoUrl && (
+              {project.video_url && (
                 <div className="rounded-lg overflow-hidden mb-6 bg-dark-100">
                   <video 
                     controls 
                     className="w-full object-cover"
                   >
-                    <source src={project.videoUrl} type="video/mp4" />
+                    <source src={project.video_url} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
@@ -613,79 +551,7 @@ const ProjectDetailPage: React.FC = () => {
             
             <div>
               <div className="bg-dark-100 rounded-lg p-6 sticky top-24">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold">Project Details</h3>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="ghost">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-dark-100 text-white border-gray-700">
-                      <DialogHeader>
-                        <DialogTitle className="text-white">Edit Tools & Technologies</DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                          Add or remove tools used in this project.
-                        </DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="mt-4 space-y-4">
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Current Tools</label>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {editTools.map((tool, idx) => (
-                              <div 
-                                key={idx}
-                                className="flex items-center bg-dark-200 text-gray-300 px-2 py-1 rounded"
-                              >
-                                <span className="text-xs">{tool}</span>
-                                <button 
-                                  onClick={() => handleRemoveTool(idx)}
-                                  className="ml-2 text-gray-400 hover:text-gray-200"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Add New Tool</label>
-                          <div className="flex gap-2">
-                            <Input
-                              value={newTool}
-                              onChange={(e) => setNewTool(e.target.value)}
-                              placeholder="Enter tool name"
-                              className="bg-dark-200 border-gray-700 text-white"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleAddTool();
-                                }
-                              }}
-                            />
-                            <Button onClick={handleAddTool}>
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-end gap-2 mt-4">
-                          <DialogClose asChild>
-                            <Button variant="ghost">Cancel</Button>
-                          </DialogClose>
-                          <DialogClose asChild>
-                            <Button onClick={handleSaveTools}>
-                              <Save className="mr-2 h-4 w-4" />
-                              Save Tools
-                            </Button>
-                          </DialogClose>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                <h3 className="text-xl font-semibold mb-4">Project Details</h3>
                 
                 <div className="space-y-4">
                   <div>
@@ -696,7 +562,7 @@ const ProjectDetailPage: React.FC = () => {
                   <div>
                     <h4 className="text-sm text-gray-400 mb-1">Tools & Technologies</h4>
                     <div className="flex flex-wrap gap-2">
-                      {project.tools.map((tool, idx) => (
+                      {project.tools && project.tools.map((tool, idx) => (
                         <span 
                           key={idx}
                           className="text-xs bg-dark-200 text-gray-300 px-2 py-1 rounded"
