@@ -55,6 +55,16 @@ const Projects: React.FC = () => {
       return '/lovable-uploads/e047683d-9567-4463-987c-9a65e286e3a1.png';
     }
     
+    // Use specific image for Red Bull project
+    if (project.title.toLowerCase().includes('red bull') || project.title.toLowerCase().includes('redbull')) {
+      return '/lovable-uploads/3f103bfc-8181-405b-a1d3-b23db84a82b0.png';
+    }
+    
+    // Use specific image for Reflection project
+    if (project.title.toLowerCase().includes('reflection')) {
+      return '/lovable-uploads/949217ba-35cf-41c5-a568-1057e66b9e0f.png';
+    }
+    
     // For other projects, use the first image from their images array
     if (project.images && project.images.length > 0) {
       return project.images[0];

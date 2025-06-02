@@ -206,8 +206,8 @@ const ProjectDetailPage: React.FC = () => {
     if (files && files.length > 0) {
       const file = files[0];
       
-      if (file.size > 100 * 1024 * 1024) {
-        toast.warning("Video file is too large (max 100MB). Please choose a smaller file.");
+      if (file.size > 150 * 1024 * 1024) {
+        toast.warning("Video file is too large (max 150MB). Please choose a smaller file.");
         return;
       }
       
@@ -239,10 +239,10 @@ const ProjectDetailPage: React.FC = () => {
       <div className="min-h-screen bg-dark-200 text-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Project not found</h1>
-          <Link to="/">
+          <Link to="/#projects">
             <Button>
               <ArrowLeft className="mr-2" />
-              Back to Home
+              Back to Projects
             </Button>
           </Link>
         </div>
@@ -256,9 +256,9 @@ const ProjectDetailPage: React.FC = () => {
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <Link to="/" className="inline-flex items-center text-primary hover:underline mb-6">
+            <Link to="/#projects" className="inline-flex items-center text-primary hover:underline mb-6">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to home
+              Back to projects
             </Link>
             
             <div className="flex justify-between items-start mb-8">
