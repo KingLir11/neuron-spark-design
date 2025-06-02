@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
@@ -20,7 +21,7 @@ const Navbar: React.FC = () => {
     if (location.pathname !== '/' && !href.startsWith('#')) {
       return; // Let the Link component handle navigation
     }
-    if (location.pathname !== '/' && href.startsWith('#')) {
+    if (location.pathname !== '/' && href.startsWith('#') {
       window.location.href = '/' + href; // Navigate to home page with hash
       return;
     }
@@ -68,7 +69,7 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="text-2xl font-display font-bold text-primary glow">
-            Liran<span className="text-white">AI</span>
+            Liran <span className="text-white">Sapozhnikov</span>
           </Link>
 
           {/* Desktop Navigation */}
