@@ -21,7 +21,7 @@ const Navbar: React.FC = () => {
     if (location.pathname !== '/' && !href.startsWith('#')) {
       return; // Let the Link component handle navigation
     }
-    if (location.pathname !== '/' && href.startsWith('#') {
+    if (location.pathname !== '/' && href.startsWith('#')) {
       window.location.href = '/' + href; // Navigate to home page with hash
       return;
     }
