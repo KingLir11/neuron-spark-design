@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -47,6 +48,21 @@ const Projects: React.FC = () => {
     loadProjects();
   }, []);
 
+  // Function to get the thumbnail image for a project
+  const getProjectThumbnail = (project: ProjectType) => {
+    // Use specific image for Marco project
+    if (project.title.toLowerCase().includes('marco')) {
+      return '/lovable-uploads/e047683d-9567-4463-987c-9a65e286e3a1.png';
+    }
+    
+    // For other projects, use the first image from their images array
+    if (project.images && project.images.length > 0) {
+      return project.images[0];
+    }
+    
+    return null;
+  };
+
   return (
     <section id="projects" className="py-20 bg-dark-100 scroll-mt-20">
       <div className="container mx-auto px-4">
@@ -63,51 +79,55 @@ const Projects: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
-              <Link 
-                key={project.id}
-                to={`/project/${project.id}`}
-                className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
-              >
-                <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
-                  {project.images && project.images.length > 0 ? (
-                    <img 
-                      src={project.images[0]} 
-                      alt={project.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
-                      }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xs font-mono text-gray-400">{project.category}</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  <p className="text-gray-300 mb-4 text-sm">
-                    {project.description}
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {project.tools && project.tools.map((tool, idx) => (
-                      <span 
-                        key={idx}
-                        className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"
-                      >
-                        {tool}
-                      </span>
-                    ))}
+            {projects.map((project) => {
+              const thumbnailImage = getProjectThumbnail(project);
+              
+              return (
+                <Link 
+                  key={project.id}
+                  to={`/project/${project.id}`}
+                  className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
+                >
+                  <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
+                    {thumbnailImage ? (
+                      <img 
+                        src={thumbnailImage} 
+                        alt={project.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
+                        }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xs font-mono text-gray-400">{project.category}</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                  
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
+                      {project.title}
+                    </h3>
+                    <p className="text-gray-300 mb-4 text-sm">
+                      {project.description}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {project.tools && project.tools.map((tool, idx) => (
+                        <span 
+                          key={idx}
+                          className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"
+                        >
+                          {tool}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
