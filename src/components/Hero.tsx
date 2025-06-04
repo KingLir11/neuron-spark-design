@@ -45,7 +45,7 @@ const Hero: React.FC = () => {
             <div className="aspect-square w-full bg-gradient-to-br from-dark-100 via-dark-300 to-glow-blue/20 rounded-lg p-1">
               <div className="w-full h-full bg-dark-200 rounded-lg flex items-center justify-center">
                 <img src="/lovable-uploads/111b5161-6e9d-4e41-ab55-4e031f858eb3.png" alt="AI Expert at work" className="w-full h-full object-cover rounded-lg opacity-75" />
-                <div className="absolute inset-0 flex items-center justify-center ">
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-dark-200 via-transparent">
                   <div className="text-center space-y-3">
                     <div className="text-5xl text-glow-blue">
                       <span className="inline-block animate-pulse">{`>`}</span>
