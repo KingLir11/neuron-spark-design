@@ -33,22 +33,20 @@ const ProjectMedia: React.FC<ProjectMediaProps> = ({ project }) => {
               {project.images.map((img, index) => (
                 <CarouselItem key={index}>
                   <div className="rounded-lg overflow-hidden bg-dark-100 shadow-md">
-                    <img 
-                      src={img} 
-                      alt={`${project.title} - Image ${index + 1}`} 
-                      className="w-full h-96 object-contain"
-                      loading={index === 0 ? "eager" : "lazy"}
-                    />
+                    <div className="aspect-square w-full">
+                      <img 
+                        src={img} 
+                        alt={`${project.title} - Image ${index + 1}`} 
+                        className="w-full h-full object-cover"
+                        loading={index === 0 ? "eager" : "lazy"}
+                      />
+                    </div>
                   </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {project.images.length > 1 && (
-              <>
-                <CarouselPrevious />
-                <CarouselNext />
-              </>
-            )}
+            <CarouselPrevious />
+            <CarouselNext />
           </Carousel>
         </div>
       )}

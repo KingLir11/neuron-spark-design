@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import TypingEffect from './TypingEffect';
@@ -58,7 +59,7 @@ const Hero: React.FC = () => {
             <div className="aspect-square w-full bg-gradient-to-br from-dark-100 via-dark-300 to-glow-blue/20 rounded-lg p-1">
               <div className="w-full h-full bg-dark-200 rounded-lg flex items-center justify-center">
                 <img
-                  src="/lovable-uploads/photo-1487058792275-0ad4aaf24ca7.jpg"
+                  src="/lovable-uploads/111b5161-6e9d-4e41-ab55-4e031f858eb3.png"
                   alt="AI Expert at work"
                   className="w-full h-full object-cover rounded-lg opacity-75"
                 />
