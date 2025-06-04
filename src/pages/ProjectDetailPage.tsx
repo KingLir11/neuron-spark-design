@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface Project {
   id: string;
@@ -24,6 +30,7 @@ interface Project {
 
 const ProjectDetailPage: React.FC = () => {
   const { id: projectId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [editTitle, setEditTitle] = useState('');
@@ -224,6 +231,16 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
+  const handleBackToProjects = () => {
+    navigate('/', { replace: true });
+    setTimeout(() => {
+      const projectsSection = document.getElementById('projects');
+      if (projectsSection) {
+        projectsSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-dark-200 text-white flex items-center justify-center">
@@ -239,12 +256,10 @@ const ProjectDetailPage: React.FC = () => {
       <div className="min-h-screen bg-dark-200 text-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Project not found</h1>
-          <Link to="/#projects">
-            <Button>
-              <ArrowLeft className="mr-2" />
-              Back to Projects
-            </Button>
-          </Link>
+          <Button onClick={handleBackToProjects}>
+            <ArrowLeft className="mr-2" />
+            Back to Projects
+          </Button>
         </div>
       </div>
     );
@@ -256,10 +271,13 @@ const ProjectDetailPage: React.FC = () => {
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <Link to="/#projects" className="inline-flex items-center text-primary hover:underline mb-6">
+            <button 
+              onClick={handleBackToProjects}
+              className="inline-flex items-center text-primary hover:underline mb-6"
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to projects
-            </Link>
+            </button>
             
             <div className="flex justify-between items-start mb-8">
               <div>
@@ -522,17 +540,29 @@ const ProjectDetailPage: React.FC = () => {
               </div>
               
               {project.images && project.images.length > 0 && (
-                <div className="space-y-6 mb-8">
-                  {project.images.map((img, index) => (
-                    <div key={index} className="rounded-lg overflow-hidden bg-dark-100 shadow-md transition-transform hover:scale-[1.01]">
-                      <img 
-                        src={img} 
-                        alt={`${project.title} - Image ${index + 1}`} 
-                        className="w-full object-cover"
-                        loading={index === 0 ? "eager" : "lazy"}
-                      />
-                    </div>
-                  ))}
+                <div className="mb-8">
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {project.images.map((img, index) => (
+                        <CarouselItem key={index}>
+                          <div className="rounded-lg overflow-hidden bg-dark-100 shadow-md">
+                            <img 
+                              src={img} 
+                              alt={`${project.title} - Image ${index + 1}`} 
+                              className="w-full h-96 object-contain"
+                              loading={index === 0 ? "eager" : "lazy"}
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {project.images.length > 1 && (
+                      <>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                      </>
+                    )}
+                  </Carousel>
                 </div>
               )}
               

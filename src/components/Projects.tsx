@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -63,6 +62,11 @@ const Projects: React.FC = () => {
     // Use specific image for Reflection project
     if (project.title.toLowerCase().includes('reflection')) {
       return '/lovable-uploads/949217ba-35cf-41c5-a568-1057e66b9e0f.png';
+    }
+    
+    // Use specific image for Fashion Brand Collection project
+    if (project.title.toLowerCase().includes('fashion') || project.title.toLowerCase().includes('brand')) {
+      return '/lovable-uploads/7a6ef81f-3f7d-417c-a5f9-2978e0228852.png';
     }
     
     // For other projects, use the first image from their images array
