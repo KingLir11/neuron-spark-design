@@ -48,11 +48,9 @@ const Hero: React.FC = () => {
                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-dark-200 via-transparent">
                   <div className="text-center space-y-3">
                     <div className="text-5xl text-glow-blue">
-                      <span className="inline-block animate-pulse">{`>`}</span>
+                      
                     </div>
-                    <div className="font-mono text-gray-400 text-sm">
-                      AI Expert at work.
-                    </div>
+                    
                   </div>
                 </div>
               </div>
