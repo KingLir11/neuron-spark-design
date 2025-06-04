@@ -46,7 +46,7 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="bg-dark-100 p-5 rounded-lg flex items-start py-[21px] my-[18px]">
+                <div className="bg-dark-100 p-5 rounded-lg flex items-start my-[18px] py-[22px]">
                   <MessageSquare className="w-5 h-5 text-primary mt-1 mr-4" />
                   <div>
                     <h4 className="text-white font-medium mb-2">Phone Number</h4>
