@@ -35,7 +35,12 @@ const Projects: React.FC = () => {
           return;
         }
         
-        setProjects(data || []);
+        // Filter out the visual identity creator project and keep only 5 projects
+        const filteredProjects = (data || []).filter(project => 
+          !project.title.toLowerCase().includes('visual identity creator')
+        ).slice(0, 5);
+        
+        setProjects(filteredProjects);
       } catch (error) {
         console.error('Error loading projects:', error);
         toast.error('Failed to load projects');
@@ -77,6 +82,26 @@ const Projects: React.FC = () => {
     return null;
   };
 
+  // Function to arrange projects in the specified order
+  const arrangeProjects = (projects: ProjectType[]) => {
+    const projectOrder = ['reflection', 'marco', 'fashion', 'custom playlist', 'redbull'];
+    const arranged: ProjectType[] = [];
+    
+    projectOrder.forEach(keyword => {
+      const project = projects.find(p => 
+        p.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        (keyword === 'redbull' && p.title.toLowerCase().includes('red bull'))
+      );
+      if (project) {
+        arranged.push(project);
+      }
+    });
+    
+    return arranged;
+  };
+
+  const arrangedProjects = arrangeProjects(projects);
+
   return (
     <section id="projects" className="py-20 bg-dark-100 scroll-mt-20">
       <div className="container mx-auto px-4">
@@ -92,56 +117,114 @@ const Projects: React.FC = () => {
             <div className="animate-pulse text-primary text-lg">Loading projects...</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => {
-              const thumbnailImage = getProjectThumbnail(project);
-              
-              return (
-                <Link 
-                  key={project.id}
-                  to={`/project/${project.id}`}
-                  className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
-                >
-                  <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
-                    {thumbnailImage ? (
-                      <img 
-                        src={thumbnailImage} 
-                        alt={project.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
-                        }}
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs font-mono text-gray-400">{project.category}</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
-                      {project.title}
-                    </h3>
-                    <p className="text-gray-300 mb-4 text-sm">
-                      {project.description}
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {project.tools && project.tools.map((tool, idx) => (
-                        <span 
-                          key={idx}
-                          className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"
-                        >
-                          {tool}
-                        </span>
-                      ))}
+          <div className="max-w-6xl mx-auto">
+            {/* Top row - 3 projects */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+              {arrangedProjects.slice(0, 3).map((project) => {
+                const thumbnailImage = getProjectThumbnail(project);
+                
+                return (
+                  <Link 
+                    key={project.id}
+                    to={`/project/${project.id}`}
+                    className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
+                  >
+                    <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
+                      {thumbnailImage ? (
+                        <img 
+                          src={thumbnailImage} 
+                          alt={project.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
+                          }}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-mono text-gray-400">{project.category}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
+                    
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
+                        {project.title}
+                      </h3>
+                      <p className="text-gray-300 mb-4 text-sm">
+                        {project.description}
+                      </p>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {project.tools && project.tools.map((tool, idx) => (
+                          <span 
+                            key={idx}
+                            className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"
+                          >
+                            {tool}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+            
+            {/* Bottom row - 2 projects centered */}
+            <div className="flex justify-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+                {arrangedProjects.slice(3, 5).map((project) => {
+                  const thumbnailImage = getProjectThumbnail(project);
+                  
+                  return (
+                    <Link 
+                      key={project.id}
+                      to={`/project/${project.id}`}
+                      className="block bg-dark-200 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300"
+                    >
+                      <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
+                        {thumbnailImage ? (
+                          <img 
+                            src={thumbnailImage} 
+                            alt={project.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Image+Error';
+                            }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-xs font-mono text-gray-400">{project.category}</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+                      
+                      <div className="p-6">
+                        <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
+                          {project.title}
+                        </h3>
+                        <p className="text-gray-300 mb-4 text-sm">
+                          {project.description}
+                        </p>
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {project.tools && project.tools.map((tool, idx) => (
+                            <span 
+                              key={idx}
+                              className="text-xs bg-dark-100 text-gray-300 px-2 py-1 rounded"
+                            >
+                              {tool}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>
