@@ -63,7 +63,14 @@ const ProjectDetailPage: React.FC = () => {
   }, [projectId]);
 
   const handleBackToProjects = () => {
-    navigate('/#projects');
+    navigate('/', { replace: true });
+    // Small delay to ensure navigation completes before scrolling
+    setTimeout(() => {
+      const projectsSection = document.getElementById('projects');
+      if (projectsSection) {
+        projectsSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const handleProjectUpdate = (updatedProject: Project) => {

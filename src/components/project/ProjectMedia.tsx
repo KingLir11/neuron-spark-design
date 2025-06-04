@@ -28,12 +28,12 @@ const ProjectMedia: React.FC<ProjectMediaProps> = ({ project }) => {
     <>
       {project.images && project.images.length > 0 && (
         <div className="mb-8">
-          <Carousel className="w-full">
+          <Carousel className="w-full max-w-md mx-auto">
             <CarouselContent>
               {project.images.map((img, index) => (
                 <CarouselItem key={index}>
                   <div className="rounded-lg overflow-hidden bg-dark-100 shadow-md">
-                    <div className="aspect-square w-full">
+                    <div className="aspect-square w-full max-w-sm mx-auto">
                       <img 
                         src={img} 
                         alt={`${project.title} - Image ${index + 1}`} 
