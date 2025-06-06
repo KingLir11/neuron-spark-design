@@ -30,6 +30,18 @@ const Services: React.FC = () => {
     }
   ];
 
+  const handleServiceClick = (serviceTitle: string) => {
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+      // Add service parameter to URL and scroll to contact section
+      window.history.pushState({}, '', `#contact?service=${encodeURIComponent(serviceTitle)}`);
+      contactSection.scrollIntoView({ behavior: 'smooth' });
+      
+      // Trigger a custom event to notify the Contact component
+      window.dispatchEvent(new CustomEvent('serviceSelected', { detail: serviceTitle }));
+    }
+  };
+
   return (
     <section id="services" className="bg-dark-200 py-[60px]">
       <div className="container mx-auto px-4">
@@ -42,7 +54,11 @@ const Services: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {services.map((service, index) => (
-            <div key={index} className="bg-dark-100 p-6 rounded-lg group hover:glow-box transition-all duration-300">
+            <div 
+              key={index} 
+              className="bg-dark-100 p-6 rounded-lg group hover:glow-box transition-all duration-300 cursor-pointer"
+              onClick={() => handleServiceClick(service.title)}
+            >
               <div className={`${service.color} p-3 rounded-lg inline-block mb-4 group-hover:scale-110 transition-transform duration-300`}>
                 <div className="text-white">
                   {service.icon}
