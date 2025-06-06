@@ -138,7 +138,7 @@ const Contact: React.FC = () => {
                 <div>
                   <Select value={formData.service} onValueChange={handleServiceChange}>
                     <SelectTrigger className="bg-dark-100 border-gray-700 text-white">
-                      <SelectValue placeholder="Select the service you need help with" />
+                      <SelectValue placeholder="Select the desired service" />
                     </SelectTrigger>
                     <SelectContent className="bg-dark-100 border-gray-700">
                       <SelectItem value="Web Development" className="text-white hover:bg-gray-700">Web Development</SelectItem>
