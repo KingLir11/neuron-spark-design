@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -81,9 +82,14 @@ const ProjectDetailPage: React.FC = () => {
     setTimeout(() => {
       const contactSection = document.getElementById('contact');
       if (contactSection) {
-        contactSection.scrollIntoView({ behavior: 'smooth' });
+        // Scroll to top of contact section with offset for navbar
+        const offsetTop = contactSection.offsetTop - 80;
+        window.scrollTo({
+          top: offsetTop,
+          behavior: 'smooth'
+        });
       }
-    }, 100);
+    }, 200);
   };
 
   if (loading) {
@@ -132,16 +138,6 @@ const ProjectDetailPage: React.FC = () => {
             </ProjectHeader>
           </div>
           
-          {/* Let's Create Together Button */}
-          <div className="flex justify-center mb-8">
-            <button
-              onClick={handleCreateTogether}
-              className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-3 rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl"
-            >
-              Let's Create Together!
-            </button>
-          </div>
-          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <div className="prose prose-invert max-w-none mb-8">
@@ -156,6 +152,16 @@ const ProjectDetailPage: React.FC = () => {
             
             <div>
               <ProjectDetails project={project} />
+              
+              {/* Let's Create Together Button */}
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={handleCreateTogether}
+                  className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-3 rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl"
+                >
+                  Let's Create Together!
+                </button>
+              </div>
             </div>
           </div>
         </div>
