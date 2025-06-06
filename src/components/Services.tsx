@@ -19,7 +19,7 @@ const Services: React.FC = () => {
     {
       icon: <Image className="w-8 h-8" />,
       title: "Media Generation",
-      description: "Create stunning visuals and dynamic video content with Midjourney, Runway, Pika, and other leading AI tools.",
+      description: "Create stunning visuals and dynamic video content with Midjourney, Kling and other leading AI tools.",
       color: "bg-green-500"
     },
     {
