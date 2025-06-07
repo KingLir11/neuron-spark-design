@@ -26,15 +26,15 @@ const About: React.FC = () => {
                 <h3 className="text-lg sm:text-xl font-semibold text-white mb-3">My Approach:</h3>
                 <ul className="space-y-2 text-gray-300 text-sm sm:text-base">
                   <li className="flex items-start">
-                    <span className="text-primary mr-2 mt-1">→</span>
+                    <span className="text-primary mr-2 mt-1 flex-shrink-0">→</span>
                     <span>System thinking with creative problem-solving</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-primary mr-2 mt-1">→</span>
+                    <span className="text-primary mr-2 mt-1 flex-shrink-0">→</span>
                     <span>Practical implementation with measurable results</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-primary mr-2 mt-1">→</span>
+                    <span className="text-primary mr-2 mt-1 flex-shrink-0">→</span>
                     <span>Continuous exploration of emerging AI capabilities</span>
                   </li>
                 </ul>
@@ -46,7 +46,9 @@ const About: React.FC = () => {
                 <img 
                   src="/lovable-uploads/d7a59393-6000-4bc0-80f3-f352306e9523.png" 
                   alt="AI Expert Profile" 
-                  className="w-full h-full object-cover rounded-lg" 
+                  className="w-full h-full object-cover rounded-lg transition-transform duration-300 hover:scale-105" 
+                  loading="lazy"
+                  sizes="(max-width: 640px) 320px, (max-width: 1024px) 384px, 512px"
                 />
               </div>
             </div>

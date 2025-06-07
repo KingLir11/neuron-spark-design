@@ -34,7 +34,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onCreateTogeth
             {project.tools && project.tools.map((tool, idx) => (
               <span 
                 key={idx}
-                className="text-xs bg-dark-200 text-gray-300 px-2 py-1 rounded"
+                className="text-xs bg-dark-200 text-gray-300 px-2 py-1 rounded transition-colors duration-200 hover:bg-dark-300"
               >
                 {tool}
               </span>
@@ -43,12 +43,12 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onCreateTogeth
         </div>
       </div>
 
-      {/* Let's Create Together Button */}
+      {/* Let's Create Together Button - Enhanced for mobile */}
       {onCreateTogether && (
         <div className="flex justify-center">
           <button
             onClick={onCreateTogether}
-            className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-6 sm:px-8 py-3 rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl w-full text-sm sm:text-base touch-manipulation"
+            className="bg-cyan-400 hover:bg-cyan-500 active:bg-cyan-600 text-black font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl w-full text-sm sm:text-base touch-manipulation min-h-[48px] hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-dark-100"
           >
             Let's Create Together!
           </button>
