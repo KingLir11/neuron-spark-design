@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -151,17 +150,7 @@ const ProjectDetailPage: React.FC = () => {
             </div>
             
             <div>
-              <ProjectDetails project={project} />
-              
-              {/* Let's Create Together Button */}
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={handleCreateTogether}
-                  className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-3 rounded-lg transition-colors duration-300 shadow-lg hover:shadow-xl"
-                >
-                  Let's Create Together!
-                </button>
-              </div>
+              <ProjectDetails project={project} onCreateTogether={handleCreateTogether} />
             </div>
           </div>
         </div>
