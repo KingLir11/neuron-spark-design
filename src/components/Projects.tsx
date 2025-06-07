@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -35,7 +36,6 @@ const Projects: React.FC = () => {
           return;
         }
 
-        // Filter out the visual identity creator project and keep only 5 projects
         const filteredProjects = (data || [])
           .filter(project => !project.title.toLowerCase().includes('visual identity creator'))
           .slice(0, 5);
@@ -50,41 +50,28 @@ const Projects: React.FC = () => {
     loadProjects();
   }, []);
 
-  // Function to get the thumbnail image for a project
   const getProjectThumbnail = (project: ProjectType) => {
-    // Use specific image for Marco project
     if (project.title.toLowerCase().includes('marco')) {
       return '/lovable-uploads/e047683d-9567-4463-987c-9a65e286e3a1.png';
     }
-
-    // Use specific image for Red Bull project
     if (project.title.toLowerCase().includes('red bull') || project.title.toLowerCase().includes('redbull')) {
       return '/lovable-uploads/3f103bfc-8181-405b-a1d3-b23db84a82b0.png';
     }
-
-    // Use specific image for Reflection project
     if (project.title.toLowerCase().includes('reflection')) {
       return '/lovable-uploads/949217ba-35cf-41c5-a568-1057e66b9e0f.png';
     }
-
-    // Use specific image for Fashion Brand Collection project
     if (project.title.toLowerCase().includes('fashion') || project.title.toLowerCase().includes('brand')) {
       return '/lovable-uploads/7a6ef81f-3f7d-417c-a5f9-2978e0228852.png';
     }
-
-    // Use specific image for Custom Playlist Creator project
     if (project.title.toLowerCase().includes('custom playlist') || project.title.toLowerCase().includes('playlist')) {
       return '/lovable-uploads/3f31b1e6-7dc2-4cf7-b4b5-c1ce6e2e81e0.png';
     }
-
-    // For other projects, use the first image from their images array
     if (project.images && project.images.length > 0) {
       return project.images[0];
     }
     return null;
   };
 
-  // Function to arrange projects in the specified order
   const arrangeProjects = (projects: ProjectType[]) => {
     const projectOrder = ['reflection', 'marco', 'fashion', 'custom playlist', 'redbull'];
     const arranged: ProjectType[] = [];
@@ -105,12 +92,12 @@ const Projects: React.FC = () => {
   const arrangedProjects = arrangeProjects(projects);
 
   return (
-    <section id="projects" className="py-20 bg-dark-200 scroll-mt-20">
+    <section id="projects" className="py-16 sm:py-20 lg:py-24 bg-dark-200 scroll-mt-20">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white text-center">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-white text-center">
           Featured <span className="text-primary glow">Projects</span>
         </h2>
-        <p className="text-gray-300 text-center max-w-2xl mx-auto mb-16">
+        <p className="text-gray-300 text-center max-w-2xl mx-auto mb-12 sm:mb-16 text-base sm:text-lg">
           A selection of my recent work showcasing AI capabilities across different domains.
         </p>
         
@@ -120,15 +107,15 @@ const Projects: React.FC = () => {
           </div>
         ) : (
           <div className="max-w-6xl mx-auto">
-            {/* Top row - 3 projects */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            {/* Top row - 3 projects on desktop, stacked on mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
               {arrangedProjects.slice(0, 3).map((project) => {
                 const thumbnailImage = getProjectThumbnail(project);
                 return (
                   <Link 
                     key={project.id} 
                     to={`/project/${project.id}`} 
-                    className="block bg-dark-100 border border-gray-700 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300 hover:border-primary/30"
+                    className="block bg-dark-100 border border-gray-700 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300 hover:border-primary/30 touch-manipulation"
                   >
                     <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
                       {thumbnailImage ? (
@@ -148,11 +135,11 @@ const Projects: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     
-                    <div className="p-6">
-                      <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
+                    <div className="p-4 sm:p-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
                         {project.title}
                       </h3>
-                      <p className="text-gray-300 mb-4 text-sm">
+                      <p className="text-gray-300 mb-3 sm:mb-4 text-sm leading-relaxed">
                         {project.description}
                       </p>
                       
@@ -169,16 +156,16 @@ const Projects: React.FC = () => {
               })}
             </div>
             
-            {/* Bottom row - 2 projects centered with same size as top row */}
+            {/* Bottom row - 2 projects */}
             <div className="flex justify-center">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 max-w-4xl w-full">
                 {arrangedProjects.slice(3, 5).map((project) => {
                   const thumbnailImage = getProjectThumbnail(project);
                   return (
                     <Link 
                       key={project.id} 
                       to={`/project/${project.id}`} 
-                      className="block bg-dark-100 border border-gray-700 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300 hover:border-primary/30"
+                      className="block bg-dark-100 border border-gray-700 rounded-lg overflow-hidden group hover:glow-box transition-all duration-300 hover:border-primary/30 touch-manipulation"
                     >
                       <div className="aspect-video bg-gradient-to-br from-dark-100 to-dark-300 relative overflow-hidden">
                         {thumbnailImage ? (
@@ -198,11 +185,11 @@ const Projects: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-dark-200 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
                       
-                      <div className="p-6">
-                        <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
+                      <div className="p-4 sm:p-6">
+                        <h3 className="text-base sm:text-lg font-semibold text-white mb-2 group-hover:text-primary transition-colors">
                           {project.title}
                         </h3>
-                        <p className="text-gray-300 mb-4 text-sm">
+                        <p className="text-gray-300 mb-3 sm:mb-4 text-sm leading-relaxed">
                           {project.description}
                         </p>
                         

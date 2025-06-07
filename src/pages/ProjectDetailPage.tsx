@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -63,7 +64,6 @@ const ProjectDetailPage: React.FC = () => {
 
   const handleBackToProjects = () => {
     navigate('/', { replace: true });
-    // Small delay to ensure navigation completes before scrolling
     setTimeout(() => {
       const projectsSection = document.getElementById('projects');
       if (projectsSection) {
@@ -81,7 +81,6 @@ const ProjectDetailPage: React.FC = () => {
     setTimeout(() => {
       const contactSection = document.getElementById('contact');
       if (contactSection) {
-        // Scroll to top of contact section with offset for navbar
         const offsetTop = contactSection.offsetTop - 80;
         window.scrollTo({
           top: offsetTop,
@@ -104,9 +103,9 @@ const ProjectDetailPage: React.FC = () => {
   if (!project) {
     return (
       <div className="min-h-screen bg-dark-200 text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Project not found</h1>
-          <Button onClick={handleBackToProjects}>
+        <div className="text-center px-4">
+          <h1 className="text-xl sm:text-2xl font-bold mb-4">Project not found</h1>
+          <Button onClick={handleBackToProjects} className="h-12 px-6">
             <ArrowLeft className="mr-2" />
             Back to Projects
           </Button>
@@ -120,10 +119,10 @@ const ProjectDetailPage: React.FC = () => {
       <Navbar />
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4">
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <button 
               onClick={handleBackToProjects}
-              className="inline-flex items-center text-primary hover:underline mb-6"
+              className="inline-flex items-center text-primary hover:underline mb-4 sm:mb-6 touch-manipulation"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to projects
@@ -137,11 +136,11 @@ const ProjectDetailPage: React.FC = () => {
             </ProjectHeader>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="prose prose-invert max-w-none mb-8">
-                <h2 className="text-2xl font-semibold mb-4">About this project</h2>
-                <p className="text-gray-300 mb-6 text-lg">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="lg:col-span-2 order-2 lg:order-1">
+              <div className="prose prose-invert max-w-none mb-6 sm:mb-8">
+                <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">About this project</h2>
+                <p className="text-gray-300 mb-4 sm:mb-6 text-base sm:text-lg leading-relaxed">
                   {project.long_description || project.description}
                 </p>
               </div>
@@ -149,8 +148,10 @@ const ProjectDetailPage: React.FC = () => {
               <ProjectMedia project={project} />
             </div>
             
-            <div>
-              <ProjectDetails project={project} onCreateTogether={handleCreateTogether} />
+            <div className="order-1 lg:order-2">
+              <div className="lg:sticky lg:top-24">
+                <ProjectDetails project={project} onCreateTogether={handleCreateTogether} />
+              </div>
             </div>
           </div>
         </div>
