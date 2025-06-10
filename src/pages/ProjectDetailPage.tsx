@@ -8,7 +8,6 @@ import { ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 import ProjectHeader from '@/components/project/ProjectHeader';
-import ProjectEditDialog from '@/components/project/ProjectEditDialog';
 import ProjectMedia from '@/components/project/ProjectMedia';
 import ProjectDetails from '@/components/project/ProjectDetails';
 
@@ -72,10 +71,6 @@ const ProjectDetailPage: React.FC = () => {
     }, 100);
   };
 
-  const handleProjectUpdate = (updatedProject: Project) => {
-    setProject(updatedProject);
-  };
-
   const handleCreateTogether = () => {
     navigate('/', { replace: true });
     setTimeout(() => {
@@ -128,12 +123,7 @@ const ProjectDetailPage: React.FC = () => {
               Back to projects
             </button>
             
-            <ProjectHeader project={project}>
-              <ProjectEditDialog 
-                project={project} 
-                onProjectUpdate={handleProjectUpdate}
-              />
-            </ProjectHeader>
+            <ProjectHeader project={project} />
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
