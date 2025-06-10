@@ -73,10 +73,11 @@ const ProjectDetailPage: React.FC = () => {
   const handleCreateTogether = () => {
     navigate('/', { replace: true });
     setTimeout(() => {
-      const contactSection = document.getElementById('contact');
-      if (contactSection) {
-        contactSection.scrollIntoView({ behavior: 'smooth' });
-      }
+      // Scroll to the very bottom of the page
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
     }, 200);
   };
 
