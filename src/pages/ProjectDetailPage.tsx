@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -76,11 +75,7 @@ const ProjectDetailPage: React.FC = () => {
     setTimeout(() => {
       const contactSection = document.getElementById('contact');
       if (contactSection) {
-        const offsetTop = contactSection.offsetTop - 80;
-        window.scrollTo({
-          top: offsetTop,
-          behavior: 'smooth'
-        });
+        contactSection.scrollIntoView({ behavior: 'smooth' });
       }
     }, 200);
   };
