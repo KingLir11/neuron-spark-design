@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, MessageSquare } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -65,8 +66,34 @@ const Contact: React.FC = () => {
       toast.error('Please fill in all fields');
       return;
     }
+    
     setIsLoading(true);
+    let submissionId: string | null = null;
+    
     try {
+      // First, save to Supabase
+      console.log('Saving contact submission to Supabase...');
+      const { data: submission, error: dbError } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          service: formData.service,
+          message: formData.message
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Error saving to database:', dbError);
+        throw new Error('Failed to save contact submission');
+      }
+
+      submissionId = submission.id;
+      console.log('Contact submission saved to Supabase with ID:', submissionId);
+
+      // Then, try to send to Make.com webhook
+      console.log('Sending to Make.com webhook...');
       const response = await fetch('https://hook.eu2.make.com/8d544dq83kivchiqq5fqcc7lvwctak0n', {
         method: 'POST',
         headers: {
@@ -77,25 +104,58 @@ const Contact: React.FC = () => {
           email: formData.email,
           service: formData.service,
           message: formData.message,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          submission_id: submissionId
         })
       });
+
       if (response.ok) {
+        // Update the submission to mark webhook as sent
+        await supabase
+          .from('contact_submissions')
+          .update({
+            webhook_sent: true,
+            webhook_sent_at: new Date().toISOString()
+          })
+          .eq('id', submissionId);
+        
+        console.log('Webhook sent successfully');
         toast.success('Message sent successfully!');
+      } else {
+        throw new Error(`Webhook failed with status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error processing contact form:', error);
+      
+      // If we have a submission ID, update it with the error
+      if (submissionId) {
+        await supabase
+          .from('contact_submissions')
+          .update({
+            webhook_sent: false,
+            webhook_error: error.message
+          })
+          .eq('id', submissionId);
+      }
+      
+      // Show different messages based on whether we saved to DB or not
+      if (submissionId) {
+        toast.success('Your message has been saved! We\'ll get back to you soon.');
+        console.log('Message saved to database but webhook failed');
+      } else {
+        toast.error('Failed to send message. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+      // Clear form on success or if we saved to DB
+      if (submissionId) {
         setFormData({
           name: '',
           email: '',
           service: '',
           message: ''
         });
-      } else {
-        throw new Error('Failed to send message');
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
