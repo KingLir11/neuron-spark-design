@@ -1,14 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Edit } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import ProjectHeader from '@/components/project/ProjectHeader';
 import ProjectMedia from '@/components/project/ProjectMedia';
 import ProjectDetails from '@/components/project/ProjectDetails';
+import ProjectEditDialog from '@/components/project/ProjectEditDialog';
 
 interface Project {
   id: string;
@@ -59,6 +62,10 @@ const ProjectDetailPage: React.FC = () => {
     
     loadProject();
   }, [projectId]);
+
+  const handleProjectUpdate = (updatedProject: Project) => {
+    setProject(updatedProject);
+  };
 
   const handleBackToProjects = () => {
     navigate('/', { replace: true });
@@ -111,13 +118,28 @@ const ProjectDetailPage: React.FC = () => {
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4">
           <div className="mb-6 sm:mb-8">
-            <button 
-              onClick={handleBackToProjects}
-              className="inline-flex items-center text-primary hover:underline mb-4 sm:mb-6 touch-manipulation"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to projects
-            </button>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <button 
+                onClick={handleBackToProjects}
+                className="inline-flex items-center text-primary hover:underline touch-manipulation"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to projects
+              </button>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Edit className="h-4 w-4" />
+                    Edit Project
+                  </Button>
+                </DialogTrigger>
+                <ProjectEditDialog 
+                  project={project} 
+                  onProjectUpdate={handleProjectUpdate}
+                />
+              </Dialog>
+            </div>
             
             <ProjectHeader project={project} />
           </div>
