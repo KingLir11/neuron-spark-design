@@ -10,103 +10,11 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.12 (cd3cf9e)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      contact_submissions: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          message: string
-          name: string
-          service: string
-          webhook_error: string | null
-          webhook_sent: boolean | null
-          webhook_sent_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          message: string
-          name: string
-          service: string
-          webhook_error?: string | null
-          webhook_sent?: boolean | null
-          webhook_sent_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          message?: string
-          name?: string
-          service?: string
-          webhook_error?: string | null
-          webhook_sent?: boolean | null
-          webhook_sent_at?: string | null
-        }
-        Relationships: []
-      }
-      Edit: {
-        Row: {
-          changes: string | null
-          created_at: string
-          id: number
-        }
-        Insert: {
-          changes?: string | null
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          changes?: string | null
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
-      projects: {
-        Row: {
-          category: string | null
-          created_at: string
-          description: string | null
-          id: string
-          images: string[] | null
-          long_description: string | null
-          title: string
-          tools: string[] | null
-          updated_at: string
-          video_url: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          images?: string[] | null
-          long_description?: string | null
-          title: string
-          tools?: string[] | null
-          updated_at?: string
-          video_url?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          images?: string[] | null
-          long_description?: string | null
-          title?: string
-          tools?: string[] | null
-          updated_at?: string
-          video_url?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
