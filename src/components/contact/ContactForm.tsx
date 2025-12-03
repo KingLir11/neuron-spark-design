@@ -91,25 +91,26 @@ const ContactForm: React.FC = () => {
       submissionId = submission.id;
       console.log('Contact submission saved to Supabase with ID:', submissionId);
 
-      // Then, try to send to Make.com webhook
-      console.log('Sending to Make.com webhook...');
-      const response = await fetch('https://hook.eu2.make.com/8d544dq83kivchiqq5fqcc7lvwctak0n', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      // Then, send email via edge function
+      console.log('Sending email via edge function...');
+      const { data, error: fnError } = await supabase.functions.invoke('send-contact-email', {
+        body: {
           name: formData.name,
           email: formData.email,
           service: formData.service,
           message: formData.message,
-          timestamp: new Date().toISOString(),
           submission_id: submissionId
-        })
+        }
       });
 
+      if (fnError) {
+        throw new Error(fnError.message || 'Failed to send email');
+      }
+
+      const response = { ok: data?.success };
+
       if (response.ok) {
-        // Update the submission to mark webhook as sent
+        // Update the submission to mark email as sent
         await supabase
           .from('contact_submissions')
           .update({
@@ -118,10 +119,10 @@ const ContactForm: React.FC = () => {
           })
           .eq('id', submissionId);
         
-        console.log('Webhook sent successfully');
+        console.log('Email sent successfully');
         toast.success('Message sent successfully!');
       } else {
-        throw new Error(`Webhook failed with status: ${response.status}`);
+        throw new Error('Failed to send email');
       }
     } catch (error) {
       console.error('Error processing contact form:', error);
