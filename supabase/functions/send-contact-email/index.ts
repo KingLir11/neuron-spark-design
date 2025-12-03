@@ -14,7 +14,6 @@ interface ContactEmailRequest {
   email: string;
   service: string;
   message: string;
-  submission_id?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -24,13 +23,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email, service, message, submission_id }: ContactEmailRequest = await req.json();
+    const { name, email, service, message }: ContactEmailRequest = await req.json();
 
-    console.log("Received contact form submission:", { name, email, service, submission_id });
+    console.log("Received contact form submission:", { name, email, service });
 
     const emailResponse = await resend.emails.send({
       from: "Portfolio Contact <onboarding@resend.dev>",
-      to: ["liransap11@gmail.com"],
+      to: ["liransapozh@gmail.com"], // Updated to Resend account email
       subject: `New Contact Form Submission - ${service}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -48,14 +47,25 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <p style="color: #888; font-size: 12px; margin-top: 20px;">
-            Submission ID: ${submission_id || 'N/A'}<br>
             Sent from your portfolio website
           </p>
         </div>
       `,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Resend API response:", JSON.stringify(emailResponse));
+
+    // Check if there's an error in the response
+    if (emailResponse.error) {
+      console.error("Resend error:", emailResponse.error);
+      return new Response(
+        JSON.stringify({ success: false, error: emailResponse.error.message }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     return new Response(JSON.stringify({ success: true, data: emailResponse }), {
       status: 200,
