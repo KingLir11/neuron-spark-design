@@ -3,12 +3,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import ProjectHeader from '@/components/project/ProjectHeader';
 import ProjectMedia from '@/components/project/ProjectMedia';
 import ProjectDetails from '@/components/project/ProjectDetails';
+import ProjectEditDialog from '@/components/project/ProjectEditDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Project {
   id: string;
@@ -24,8 +37,11 @@ interface Project {
 const ProjectDetailPage: React.FC = () => {
   const { id: projectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load project from Supabase
   useEffect(() => {
@@ -73,12 +89,43 @@ const ProjectDetailPage: React.FC = () => {
   const handleCreateTogether = () => {
     navigate('/', { replace: true });
     setTimeout(() => {
-      // Scroll to the very bottom of the page
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: 'smooth'
       });
     }, 200);
+  };
+
+  const handleProjectUpdate = (updatedProject: Project) => {
+    setProject(updatedProject);
+    setIsEditDialogOpen(false);
+    toast.success('Project updated successfully');
+  };
+
+  const handleDeleteProject = async () => {
+    if (!project) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id);
+      
+      if (error) {
+        console.error('Error deleting project:', error);
+        toast.error('Failed to delete project');
+        return;
+      }
+      
+      toast.success('Project deleted successfully');
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast.error('Failed to delete project');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (loading) {
@@ -111,13 +158,62 @@ const ProjectDetailPage: React.FC = () => {
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4">
           <div className="mb-6 sm:mb-8">
-            <button 
-              onClick={handleBackToProjects}
-              className="inline-flex items-center text-primary hover:underline mb-4 sm:mb-6 touch-manipulation"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to projects
-            </button>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <button 
+                onClick={handleBackToProjects}
+                className="inline-flex items-center text-primary hover:underline touch-manipulation"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to projects
+              </button>
+              
+              {isAdmin && (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditDialogOpen(true)}
+                    className="border-gray-600 text-gray-300 hover:text-white hover:border-primary"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-red-600 text-red-400 hover:text-red-300 hover:border-red-500"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-dark-100 border-gray-700">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-white">Delete Project</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-400">
+                          Are you sure you want to delete "{project.title}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-dark-200 border-gray-600 text-gray-300 hover:bg-dark-100">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteProject}
+                          disabled={isDeleting}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
+            </div>
             
             <ProjectHeader project={project} />
           </div>
@@ -143,6 +239,15 @@ const ProjectDetailPage: React.FC = () => {
         </div>
       </main>
       <Footer />
+      
+      {isAdmin && (
+        <ProjectEditDialog
+          project={project}
+          onProjectUpdate={handleProjectUpdate}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+        />
+      )}
     </div>
   );
 };

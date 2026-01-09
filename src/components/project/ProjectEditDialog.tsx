@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { DialogContent, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog';
+import React, { useState, useRef, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,9 +22,11 @@ interface Project {
 interface ProjectEditDialogProps {
   project: Project;
   onProjectUpdate: (updatedProject: Project) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({ project, onProjectUpdate }) => {
+const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({ project, onProjectUpdate, open, onOpenChange }) => {
   const [editTitle, setEditTitle] = useState(project.title);
   const [editDescription, setEditDescription] = useState(project.description || '');
   const [editLongDescription, setEditLongDescription] = useState(project.long_description || '');
@@ -41,6 +43,18 @@ const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({ project, onProjec
   
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset form when project changes
+  useEffect(() => {
+    setEditTitle(project.title);
+    setEditDescription(project.description || '');
+    setEditLongDescription(project.long_description || '');
+    setEditImages(project.images || []);
+    setEditVideoUrl(project.video_url || '');
+    setEditTools(project.tools || []);
+    setEditCategory(project.category || '');
+    setMediaType(project.images && project.images.length > 0 ? 'image' : 'video');
+  }, [project]);
 
   const uploadFileToStorage = async (file: File, type: 'image' | 'video'): Promise<string | null> => {
     try {
@@ -184,236 +198,238 @@ const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({ project, onProjec
   };
 
   return (
-    <DialogContent className="bg-dark-100 text-white border-gray-700 max-w-2xl">
-      <DialogHeader>
-        <DialogTitle className="text-white">Edit Project Details</DialogTitle>
-        <DialogDescription className="text-gray-400">
-          Make changes to your project. Media is stored in Supabase storage.
-        </DialogDescription>
-      </DialogHeader>
-      
-      <div className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-2">
-        <div>
-          <label className="text-sm font-medium mb-1 block">Project Title</label>
-          <Input 
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            className="bg-dark-200 border-gray-700 text-white"
-          />
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-dark-100 text-white border-gray-700 max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-white">Edit Project Details</DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Make changes to your project. Media is stored in Supabase storage.
+          </DialogDescription>
+        </DialogHeader>
         
-        <div>
-          <label className="text-sm font-medium mb-1 block">Short Description</label>
-          <Input 
-            value={editDescription}
-            onChange={(e) => setEditDescription(e.target.value)}
-            className="bg-dark-200 border-gray-700 text-white"
-          />
-        </div>
-        
-        <div>
-          <label className="text-sm font-medium mb-1 block">Category</label>
-          <Input 
-            value={editCategory}
-            onChange={(e) => setEditCategory(e.target.value)}
-            className="bg-dark-200 border-gray-700 text-white"
-          />
-        </div>
-        
-        <div>
-          <label className="text-sm font-medium mb-1 block">Full Description</label>
-          <Textarea 
-            value={editLongDescription}
-            onChange={(e) => setEditLongDescription(e.target.value)}
-            className="bg-dark-200 border-gray-700 text-white min-h-[150px]"
-          />
-        </div>
-        
-        <div>
-          <label className="text-sm font-medium mb-1 block">Media Type</label>
-          <div className="flex gap-4">
-            <Button 
-              type="button" 
-              variant={mediaType === 'image' ? 'default' : 'outline'}
-              onClick={() => setMediaType('image')}
-            >
-              <Image className="mr-2 h-4 w-4" />
-              Images
-            </Button>
-            <Button 
-              type="button" 
-              variant={mediaType === 'video' ? 'default' : 'outline'}
-              onClick={() => setMediaType('video')}
-            >
-              <Video className="mr-2 h-4 w-4" />
-              Video
-            </Button>
+        <div className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-2">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Project Title</label>
+            <Input 
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="bg-dark-200 border-gray-700 text-white"
+            />
           </div>
-        </div>
-        
-        {mediaType === 'image' && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Project Images</label>
+          
+          <div>
+            <label className="text-sm font-medium mb-1 block">Short Description</label>
+            <Input 
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className="bg-dark-200 border-gray-700 text-white"
+            />
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium mb-1 block">Category</label>
+            <Input 
+              value={editCategory}
+              onChange={(e) => setEditCategory(e.target.value)}
+              className="bg-dark-200 border-gray-700 text-white"
+            />
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium mb-1 block">Full Description</label>
+            <Textarea 
+              value={editLongDescription}
+              onChange={(e) => setEditLongDescription(e.target.value)}
+              className="bg-dark-200 border-gray-700 text-white min-h-[150px]"
+            />
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium mb-1 block">Media Type</label>
+            <div className="flex gap-4">
               <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => imageFileInputRef.current?.click()}
+                type="button" 
+                variant={mediaType === 'image' ? 'default' : 'outline'}
+                onClick={() => setMediaType('image')}
               >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Images
+                <Image className="mr-2 h-4 w-4" />
+                Images
               </Button>
+              <Button 
+                type="button" 
+                variant={mediaType === 'video' ? 'default' : 'outline'}
+                onClick={() => setMediaType('video')}
+              >
+                <Video className="mr-2 h-4 w-4" />
+                Video
+              </Button>
+            </div>
+          </div>
+          
+          {mediaType === 'image' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Project Images</label>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => imageFileInputRef.current?.click()}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Images
+                </Button>
+                <input
+                  type="file"
+                  ref={imageFileInputRef}
+                  onChange={handleImageFileUpload}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  multiple
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                {editImages.map((img, index) => (
+                  <div key={index} className="relative group rounded-md overflow-hidden">
+                    <img 
+                      src={img} 
+                      alt={`Project image ${index + 1}`} 
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => handleRemoveImage(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-1 block">Add Image URL</label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="bg-dark-200 border-gray-700 text-white flex-grow"
+                  />
+                  <Button onClick={handleAddImageUrl}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {mediaType === 'video' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Video</label>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => videoFileInputRef.current?.click()}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Video
+                </Button>
+              </div>
+              
               <input
                 type="file"
-                ref={imageFileInputRef}
-                onChange={handleImageFileUpload}
-                accept="image/*"
+                ref={videoFileInputRef}
+                onChange={handleVideoFileUpload}
+                accept="video/*"
                 style={{ display: 'none' }}
-                multiple
               />
+              
+              {editVideoUrl && (
+                <div className="bg-dark-200 p-4 rounded-md">
+                  <video 
+                    controls 
+                    className="w-full h-48 object-contain"
+                  >
+                    <source src={editVideoUrl} />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              )}
+              
+              <div>
+                <label className="text-sm font-medium mb-1 block">Or Enter Video URL</label>
+                <Input 
+                  value={editVideoUrl}
+                  onChange={(e) => setEditVideoUrl(e.target.value)}
+                  placeholder="https://example.com/video.mp4"
+                  className="bg-dark-200 border-gray-700 text-white"
+                />
+              </div>
             </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              {editImages.map((img, index) => (
-                <div key={index} className="relative group rounded-md overflow-hidden">
-                  <img 
-                    src={img} 
-                    alt={`Project image ${index + 1}`} 
-                    className="w-full h-32 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      onClick={() => handleRemoveImage(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+          )}
+          
+          <div>
+            <label className="text-sm font-medium mb-1 block">Tools & Technologies</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {editTools.map((tool, idx) => (
+                <div 
+                  key={idx}
+                  className="flex items-center bg-dark-200 text-gray-300 px-2 py-1 rounded"
+                >
+                  <span className="text-xs">{tool}</span>
+                  <button 
+                    onClick={() => handleRemoveTool(idx)}
+                    className="ml-2 text-gray-400 hover:text-gray-200"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 </div>
               ))}
             </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-1 block">Add Image URL</label>
-              <div className="flex gap-2">
-                <Input 
-                  value={newImageUrl}
-                  onChange={(e) => setNewImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="bg-dark-200 border-gray-700 text-white flex-grow"
-                />
-                <Button onClick={handleAddImageUrl}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {mediaType === 'video' && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Video</label>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => videoFileInputRef.current?.click()}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Video
+            <div className="flex gap-2">
+              <Input
+                value={newTool}
+                onChange={(e) => setNewTool(e.target.value)}
+                placeholder="Enter tool name"
+                className="bg-dark-200 border-gray-700 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTool();
+                  }
+                }}
+              />
+              <Button onClick={handleAddTool}>
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
-            
-            <input
-              type="file"
-              ref={videoFileInputRef}
-              onChange={handleVideoFileUpload}
-              accept="video/*"
-              style={{ display: 'none' }}
-            />
-            
-            {editVideoUrl && (
-              <div className="bg-dark-200 p-4 rounded-md">
-                <video 
-                  controls 
-                  className="w-full h-48 object-contain"
-                >
-                  <source src={editVideoUrl} />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            )}
-            
-            <div>
-              <label className="text-sm font-medium mb-1 block">Or Enter Video URL</label>
-              <Input 
-                value={editVideoUrl}
-                onChange={(e) => setEditVideoUrl(e.target.value)}
-                placeholder="https://example.com/video.mp4"
-                className="bg-dark-200 border-gray-700 text-white"
-              />
-            </div>
           </div>
-        )}
-        
-        <div>
-          <label className="text-sm font-medium mb-1 block">Tools & Technologies</label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {editTools.map((tool, idx) => (
-              <div 
-                key={idx}
-                className="flex items-center bg-dark-200 text-gray-300 px-2 py-1 rounded"
-              >
-                <span className="text-xs">{tool}</span>
-                <button 
-                  onClick={() => handleRemoveTool(idx)}
-                  className="ml-2 text-gray-400 hover:text-gray-200"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              value={newTool}
-              onChange={(e) => setNewTool(e.target.value)}
-              placeholder="Enter tool name"
-              className="bg-dark-200 border-gray-700 text-white"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddTool();
-                }
-              }}
-            />
-            <Button onClick={handleAddTool}>
-              <Plus className="h-4 w-4" />
+          
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="ghost">Cancel</Button>
+            </DialogClose>
+            <Button 
+              onClick={handleSaveChanges} 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>Processing...</>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
             </Button>
           </div>
         </div>
-        
-        <div className="flex justify-end gap-2">
-          <DialogClose asChild>
-            <Button variant="ghost">Cancel</Button>
-          </DialogClose>
-          <Button 
-            onClick={handleSaveChanges} 
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>Processing...</>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-    </DialogContent>
+      </DialogContent>
+    </Dialog>
   );
 };
 
