@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { z } from "npm:zod@3.23.8";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -31,6 +32,10 @@ const escapeHtml = (str: string): string => {
     return escapeMap[match] || match;
   });
 };
+
+// Rate limiting constants
+const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
+const MAX_SUBMISSIONS_PER_WINDOW = 3;
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -70,6 +75,36 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { name, email, service, message } = parseResult.data;
+
+    // Initialize Supabase client for rate limiting check
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Rate limiting: Check recent submissions from this email
+    const oneHourAgo = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
+    const { data: recentSubmissions, error: rateCheckError } = await supabase
+      .from('contact_submissions')
+      .select('created_at')
+      .eq('email', email)
+      .gte('created_at', oneHourAgo);
+
+    if (rateCheckError) {
+      console.error("Rate limit check error:", rateCheckError);
+      // Continue without rate limiting if check fails
+    } else if (recentSubmissions && recentSubmissions.length >= MAX_SUBMISSIONS_PER_WINDOW) {
+      console.log("Rate limit exceeded for email:", email);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "You've submitted too many messages recently. Please try again later." 
+        }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     // Escape HTML to prevent XSS in email content
     const safeName = escapeHtml(name);
