@@ -13,16 +13,14 @@ const authSchema = z.object({
 });
 
 const Auth: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate('/');
@@ -52,30 +50,16 @@ const Auth: React.FC = () => {
     setIsLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast.error('Invalid email or password');
-          } else {
-            toast.error(error.message);
-          }
+      const { error } = await signIn(email, password);
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Invalid email or password');
         } else {
-          toast.success('Signed in successfully');
-          navigate('/');
+          toast.error(error.message);
         }
       } else {
-        const { error } = await signUp(email, password);
-        if (error) {
-          if (error.message.includes('User already registered')) {
-            toast.error('This email is already registered. Please sign in instead.');
-          } else {
-            toast.error(error.message);
-          }
-        } else {
-          toast.success('Account created successfully! You can now sign in.');
-          setIsLogin(true);
-        }
+        toast.success('Signed in successfully');
+        navigate('/');
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
@@ -90,10 +74,10 @@ const Auth: React.FC = () => {
         <div className="bg-dark-100 rounded-2xl p-8 shadow-xl border border-gray-700/50">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-display font-bold text-white mb-2">
-              {isLogin ? 'Welcome Back' : 'Create Account'}
+              Admin Login
             </h1>
             <p className="text-gray-400">
-              {isLogin ? 'Sign in to manage your portfolio' : 'Sign up to get started'}
+              Sign in to manage your portfolio
             </p>
           </div>
 
@@ -135,19 +119,9 @@ const Auth: React.FC = () => {
               className="w-full bg-primary hover:bg-primary/90 text-dark-200 font-semibold py-3"
               disabled={isLoading}
             >
-              {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Sign Up')}
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:text-primary/80 text-sm transition-colors"
-              disabled={isLoading}
-            >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-            </button>
-          </div>
 
           <div className="mt-6 text-center">
             <button
